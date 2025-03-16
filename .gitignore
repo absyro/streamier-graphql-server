@@ -1,0 +1,55 @@
+# Build artifacts
+bin
+obj
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Properties
+Properties
+
+# App settings
+appsettings.json
+appsettings.*.json
+
+# Logs
+logs
+*.log
+
+# Visual Studio specific
+.vscode
+.vs
+*.vsconfig
+*.code-workspace
+
+# Rider / JetBrains Rider
+.idea
+*.sln.iml
+
+# NuGet Packages
+*.nupkg
+packages
+project.lock.json
+global.json
+
+# Resharper
+_ReSharper.Caches
+*.DotSettings.user
+
+# Entity Framework Migrations
+Migrations
+
+# Temporary files
+tmp
+temp
+
+# Publish output
+publish
+
+# Coverage & Testing
+coverage
+*.coverage
+TestResults
