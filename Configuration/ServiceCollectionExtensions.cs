@@ -31,10 +31,7 @@ public static class ServiceCollectionExtensions
         {
             options.AddDefaultPolicy(builder =>
             {
-                builder
-                    .WithOrigins("https://studio.apollographql.com")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod();
+                builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
             });
         });
 
