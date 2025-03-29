@@ -36,7 +36,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddDbContext<Contexts.AppDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+            options.UseNpgsql(configuration.GetConnectionString("Default"))
         );
 
         services

@@ -8,8 +8,8 @@ obj
 *.userosscache
 *.sln.docstates
 
-# Properties
-Properties
+# Launch settings
+Properties/launchsettings.json
 
 # App settings
 appsettings.json
