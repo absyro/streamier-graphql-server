@@ -11,13 +11,20 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration
     )
     {
+        string postgresConnectionString =
+            configuration.GetConnectionString("Postgres")
+            ?? throw new Exception("Postgres connection string is missing!");
+
+        string resendApiToken =
+            configuration["Resend:ApiToken"] ?? throw new Exception("Resend API Token is missing!");
+
         services.AddOptions();
 
         services.AddHttpClient<ResendClient>();
 
         services.Configure<ResendClientOptions>(options =>
         {
-            options.ApiToken = Environment.GetEnvironmentVariable("RESEND_API_TOKEN")!;
+            options.ApiToken = resendApiToken;
         });
 
         services.AddScoped<
@@ -36,7 +43,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddDbContext<Contexts.AppDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("Postgres"))
+            options.UseNpgsql(postgresConnectionString)
         );
 
         services
