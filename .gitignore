@@ -12,7 +12,6 @@ obj
 Properties/launchsettings.json
 
 # App settings
-appsettings.json
 appsettings.*.json
 
 # Logs
