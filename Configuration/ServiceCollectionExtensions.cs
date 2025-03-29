@@ -13,10 +13,11 @@ public static class ServiceCollectionExtensions
     {
         string postgresConnectionString =
             configuration.GetConnectionString("Postgres")
-            ?? throw new Exception("Postgres connection string is missing!");
+            ?? throw new Exceptions.ConfigurationException("Postgres connection string");
 
         string resendApiToken =
-            configuration["Resend:ApiToken"] ?? throw new Exception("Resend API Token is missing!");
+            configuration["Resend:ApiToken"]
+            ?? throw new Exceptions.ConfigurationException("Resend API Token");
 
         services.AddOptions();
 
