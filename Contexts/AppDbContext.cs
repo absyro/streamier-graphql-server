@@ -1,29 +1,59 @@
 namespace Server.Contexts;
 
 using Microsoft.EntityFrameworkCore;
+using Server.Models;
+using Server.Models.Base;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<Models.User> Users { get; set; }
+    public DbSet<User> Users => Set<User>();
 
-    public DbSet<Models.Session> Sessions { get; set; }
+    public DbSet<Session> Sessions => Set<Session>();
 
-    public DbSet<Models.TempCode> TempCodes { get; set; }
+    public DbSet<TempCode> TempCodes => Set<TempCode>();
+
+    public override async Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default
+    )
+    {
+        UpdateTimestamps();
+
+        return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
 
     public override int SaveChanges()
     {
+        UpdateTimestamps();
+
+        return base.SaveChanges();
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        UpdateTimestamps();
+
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        UpdateTimestamps();
+
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void UpdateTimestamps()
+    {
+        var utcNow = DateTime.UtcNow;
+
         var modifiedEntities = ChangeTracker
-            .Entries()
+            .Entries<BaseEntity>()
             .Where(entity => entity.State == EntityState.Modified);
 
         foreach (var entity in modifiedEntities)
         {
-            if (entity.Entity is Models.Base.BaseEntity baseEntity)
-            {
-                baseEntity.UpdatedAt = DateTime.UtcNow;
-            }
+            entity.Entity.UpdatedAt = utcNow;
         }
-
-        return base.SaveChanges();
     }
 }
