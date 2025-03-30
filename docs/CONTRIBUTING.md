@@ -15,5 +15,6 @@ Thank you for considering contributing to Streamier Server! We appreciate your h
 - Avoid adding unnecessary dependencies.
 - Prioritize performance and security.
 - Respect the [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
+- Follow [commit conventions](https://www.conventionalcommits.org).
 
 We look forward to your contributions!

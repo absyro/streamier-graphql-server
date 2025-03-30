@@ -10,6 +10,10 @@ The Streamier Server is the main backend powering [Streamier](https://streamier.
 - **GraphQL-Only:** The server exclusively uses GraphQL (no RESTful API).
 - **Feature Development:** Expanding functionalities while maintaining stability.
 
+## Contributing
+
+Make sure to read the [CONTRIBUTING.md](./CONTRIBUTING.md) file for guidelines on how to contribute to the project.
+
 ## Security
 
 Security is a core concern. Please report any vulnerabilities by following the guidelines in [SECURITY.md](./SECURITY.md).
