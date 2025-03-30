@@ -2,17 +2,44 @@ namespace Server.Models;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Cryptography;
 
-[GraphQLDescription("The model for sessions.")]
+/// <summary>
+///  Represents a user session in the system.
+/// </summary>
 public class Session : Base.BaseEntity
 {
+    /// <summary>
+    ///  The size of the session token in bytes.
+    /// </summary>
+    private const int SessionTokenSize = 128;
+
+    /// <summary>
+    /// The ID of the user associated with this session.
+    /// </summary>
     [Required]
-    [GraphQLDescription("The ID of the user associated with the session.")]
     [Column("user_id")]
     public required string UserId { get; set; }
 
+    /// <summary>
+    /// The UTC date and time when this session will expire.
+    /// </summary>
     [Required]
-    [GraphQLDescription("The date and time when the session expires.")]
     [Column("expires_at")]
     public required DateTime ExpiresAt { get; set; }
+
+    /// <summary>
+    /// Generates a cryptographically secure random session token.
+    /// </summary>
+    /// <returns>A base64-encoded random session token.</returns>
+    public static string GenerateRandomSessionToken()
+    {
+        var tokenBytes = new byte[SessionTokenSize];
+
+        using var rng = RandomNumberGenerator.Create();
+
+        rng.GetBytes(tokenBytes);
+
+        return Convert.ToBase64String(tokenBytes);
+    }
 }

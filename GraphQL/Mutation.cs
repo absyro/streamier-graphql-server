@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Resend;
 using Snowflake.Net;
 
+/// <summary>
+/// Represents the GraphQL mutation operations.
+/// </summary>
 public class Mutation
 {
     private readonly IdWorker _snowflakeGenerator = new(1, 1);
@@ -15,8 +18,19 @@ public class Mutation
     private const int TempCodeExpirationHours = 2;
     private const int TempCodeLength = 16;
 
+    /// <summary>
+    /// Represents a mutation exception.
+    /// </summary>
+    /// <param name="message"></param>
     public class MutationException(string message) : Exception(message);
 
+    /// <summary>
+    /// Represents the input for the CreateSession mutation.
+    /// </summary>
+    /// <param name="Email"></param>
+    /// <param name="Password"></param>
+    /// <param name="Mode"></param>
+    /// <param name="ExpirationDays"></param>
     public record CreateSessionInput(
         string Email,
         string Password,
@@ -24,14 +38,31 @@ public class Mutation
         int ExpirationDays = 30
     );
 
+    /// <summary>
+    /// Represents the mode for the CreateSession mutation.
+    /// </summary>
     public enum CreateSessionMode
     {
+        /// <summary>
+        /// Signs up a new user.
+        /// </summary>
         SignUp,
+
+        /// <summary>
+        /// Signs in an existing user.
+        /// </summary>
         SignIn,
     }
 
+    /// <summary>
+    /// Creates a new session.
+    /// </summary>
+    /// <param name="dbContext"></param>
+    /// <param name="validator"></param>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    /// <exception cref="MutationException"></exception>
     [Error(typeof(MutationException))]
-    [GraphQLDescription("Creates a new session. Used for both signing in and signing up.")]
     public async Task<Models.Session> CreateSession(
         [Service] Contexts.AppDbContext dbContext,
         [Service] IValidator<CreateSessionInput> validator,
@@ -122,10 +153,20 @@ public class Mutation
         return user;
     }
 
+    /// <summary>
+    /// Represents the input for the DeleteSession mutation.
+    /// </summary>
+    /// <param name="SessionId"></param>
     public record DeleteSessionInput(string SessionId);
 
+    /// <summary>
+    /// Deletes a session.
+    /// </summary>
+    /// <param name="dbContext"></param>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    /// <exception cref="MutationException"></exception>
     [Error(typeof(MutationException))]
-    [GraphQLDescription("Deletes a session.")]
     public async Task<bool> DeleteSession(
         [Service] Contexts.AppDbContext dbContext,
         DeleteSessionInput input
@@ -142,10 +183,22 @@ public class Mutation
         return true;
     }
 
+    /// <summary>
+    /// Represents the input for the CreateTempCodeForId mutation.
+    /// </summary>
+    /// <param name="Purpose"></param>
+    /// <param name="ForId"></param>
     public record CreateTempCodeForIdInput(Models.TempCode.TempCodePurpose Purpose, string ForId);
 
+    /// <summary>
+    /// Creates a new temporary code for a specific ID.
+    /// </summary>
+    /// <param name="dbContext"></param>
+    /// <param name="resend"></param>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    /// <exception cref="MutationException"></exception>
     [Error(typeof(MutationException))]
-    [GraphQLDescription("Creates a temp code for the given entity ID.")]
     public async Task<bool> CreateTempCodeForId(
         [Service] Contexts.AppDbContext dbContext,
         [Service] IResend resend,

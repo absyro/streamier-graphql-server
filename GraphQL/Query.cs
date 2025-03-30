@@ -3,11 +3,19 @@ namespace Server.GraphQL;
 using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
 
+/// <summary>
+/// Represents the GraphQL query operations.
+/// </summary>
 public class Query
 {
+    /// <summary>
+    /// Returns a user identified by session ID
+    /// </summary>
+    /// <param name="dbContext"></param>
+    /// <param name="sessionId"></param>
+    /// <returns>The user</returns>
     [UseProjection]
     [UseFirstOrDefault]
-    [GraphQLDescription("Returns a user associated with the provided session ID")]
     public IQueryable<Models.User>? GetUser(
         [Service] Contexts.AppDbContext dbContext,
         string sessionId
@@ -22,10 +30,15 @@ public class Query
         return string.IsNullOrEmpty(userId) ? null : dbContext.Users.Where(u => u.Id == userId);
     }
 
+    /// <summary>
+    /// Returns a list of sessions for the user identified by session ID
+    /// </summary>
+    /// <param name="dbContext"></param>
+    /// <param name="sessionId"></param>
+    /// <returns>A list of sessions</returns>
     [UsePaging]
     [UseProjection]
     [UseFiltering]
-    [GraphQLDescription("Returns paginated sessions for a user identified by session ID")]
     public IQueryable<Models.Session>? GetUserSessions(
         [Service] Contexts.AppDbContext dbContext,
         string sessionId
@@ -42,7 +55,12 @@ public class Query
             : dbContext.Sessions.Where(s => s.UserId == userId);
     }
 
-    [GraphQLDescription("Checks if a user with the specified email exists")]
+    /// <summary>
+    /// Checks if a user exists
+    /// </summary>
+    /// <param name="dbContext"></param>
+    /// <param name="email"></param>
+    /// <returns>True if the user exists</returns>
     public Task<bool> DoesUserExist([Service] Contexts.AppDbContext dbContext, string email)
     {
         return dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email);

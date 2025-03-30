@@ -6,6 +6,9 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Resend;
 
+/// <summary>
+/// Represents the extension methods for the service collection.
+/// </summary>
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
@@ -13,6 +16,12 @@ public static class ServiceCollectionExtensions
 
     private static readonly TimeSpan RateLimitWindow = TimeSpan.FromSeconds(10);
 
+    /// <summary>
+    /// Adds the application services to the service collection.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
+    /// <returns>The service collection.</returns>
     public static IServiceCollection AddApplicationServices(
         this IServiceCollection services,
         IConfiguration configuration

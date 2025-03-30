@@ -2,8 +2,14 @@ namespace Server;
 
 using Server.Configuration;
 
+/// <summary>
+/// The main entry point for the application.
+/// </summary>
 public static class Program
 {
+    /// <summary>
+    /// The main entry point for the application.
+    /// </summary>
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);

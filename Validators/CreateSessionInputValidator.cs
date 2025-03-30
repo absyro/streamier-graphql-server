@@ -4,6 +4,9 @@ using FluentValidation;
 using Server.GraphQL;
 using Zxcvbn;
 
+/// <summary>
+/// Represents a validator for the create session input.
+/// </summary>
 public sealed class CreateSessionInputValidator : AbstractValidator<Mutation.CreateSessionInput>
 {
     private const int MinimumPasswordLength = 8;
@@ -12,6 +15,9 @@ public sealed class CreateSessionInputValidator : AbstractValidator<Mutation.Cre
     private const int MinimumExpirationDays = 1;
     private const int MaximumExpirationDays = 90;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateSessionInputValidator"/> class.
+    /// </summary>
     public CreateSessionInputValidator()
     {
         RuleFor(input => input.Email)
