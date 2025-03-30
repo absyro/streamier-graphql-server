@@ -101,80 +101,6 @@ public class Mutation
     }
 
     /// <summary>
-    /// Handles new user registration process.
-    /// </summary>
-    /// <param name="dbContext">The database context for user operations.</param>
-    /// <param name="input">The registration input parameters.</param>
-    /// <param name="existingUser">Existing user record if found, <c>null</c> otherwise.</param>
-    /// <returns>The newly created user.</returns>
-    /// <exception cref="MutationException">
-    /// Thrown when user already exists or creation fails.
-    /// </exception>
-    private async Task<Models.User> HandleSignUp(
-        Contexts.AppDbContext dbContext,
-        CreateSessionInput input,
-        Models.User? existingUser
-    )
-    {
-        if (existingUser != null)
-        {
-            throw new MutationException("A user with the provided email address already exists.");
-        }
-
-        var newUser = new Models.User
-        {
-            Id = Models.User.GenerateId(),
-            Email = input.Email,
-            IsEmailVerified = false,
-            HashedPassword = Models.User.HashPassword(input.Password),
-        };
-
-        dbContext.Users.Add(newUser);
-
-        await dbContext.SaveChangesAsync();
-
-        return newUser;
-    }
-
-    /// <summary>
-    /// Handles existing user authentication process.
-    /// </summary>
-    /// <param name="dbContext">The database context for user operations.</param>
-    /// <param name="input">The authentication input parameters.</param>
-    /// <param name="user">The existing user record if found.</param>
-    /// <returns>The authenticated user.</returns>
-    /// <exception cref="MutationException">
-    /// Thrown when user doesn't exist, password is invalid, or session limit reached.
-    /// </exception>
-    private async Task<Models.User> HandleSignIn(
-        Contexts.AppDbContext dbContext,
-        CreateSessionInput input,
-        Models.User? user
-    )
-    {
-        if (user is null)
-        {
-            throw new MutationException("A user with the provided email address was not found.");
-        }
-
-        var userSessionsCount = await dbContext.Sessions.CountAsync(s => s.UserId == user.Id);
-
-        if (userSessionsCount >= MaxSessionsPerUser)
-        {
-            throw new MutationException(
-                $"The maximum number of sessions ({MaxSessionsPerUser}) for this user has been reached."
-            );
-        }
-
-        if (!Models.User.ValidatePassword(input.Password, user.HashedPassword))
-        {
-            throw new MutationException("The provided password is incorrect.");
-        }
-
-        return user;
-    }
-
-    /// <summary>
     /// Input type for deleting a session.
     /// </summary>
     /// <param name="SessionId">The ID of the session to be deleted.</param>
@@ -316,5 +242,79 @@ public class Mutation
             Subject = subject,
             HtmlBody = "<strong>it works!</strong>",
         };
+    }
+
+    /// <summary>
+    /// Handles new user registration process.
+    /// </summary>
+    /// <param name="dbContext">The database context for user operations.</param>
+    /// <param name="input">The registration input parameters.</param>
+    /// <param name="existingUser">Existing user record if found, <c>null</c> otherwise.</param>
+    /// <returns>The newly created user.</returns>
+    /// <exception cref="MutationException">
+    /// Thrown when user already exists or creation fails.
+    /// </exception>
+    private static async Task<Models.User> HandleSignUp(
+        Contexts.AppDbContext dbContext,
+        CreateSessionInput input,
+        Models.User? existingUser
+    )
+    {
+        if (existingUser != null)
+        {
+            throw new MutationException("A user with the provided email address already exists.");
+        }
+
+        var newUser = new Models.User
+        {
+            Id = Models.User.GenerateId(),
+            Email = input.Email,
+            IsEmailVerified = false,
+            HashedPassword = Models.User.HashPassword(input.Password),
+        };
+
+        dbContext.Users.Add(newUser);
+
+        await dbContext.SaveChangesAsync();
+
+        return newUser;
+    }
+
+    /// <summary>
+    /// Handles existing user authentication process.
+    /// </summary>
+    /// <param name="dbContext">The database context for user operations.</param>
+    /// <param name="input">The authentication input parameters.</param>
+    /// <param name="user">The existing user record if found.</param>
+    /// <returns>The authenticated user.</returns>
+    /// <exception cref="MutationException">
+    /// Thrown when user doesn't exist, password is invalid, or session limit reached.
+    /// </exception>
+    private static async Task<Models.User> HandleSignIn(
+        Contexts.AppDbContext dbContext,
+        CreateSessionInput input,
+        Models.User? user
+    )
+    {
+        if (user is null)
+        {
+            throw new MutationException("A user with the provided email address was not found.");
+        }
+
+        var userSessionsCount = await dbContext.Sessions.CountAsync(s => s.UserId == user.Id);
+
+        if (userSessionsCount >= MaxSessionsPerUser)
+        {
+            throw new MutationException(
+                $"The maximum number of sessions ({MaxSessionsPerUser}) for this user has been reached."
+            );
+        }
+
+        if (!Models.User.ValidatePassword(input.Password, user.HashedPassword))
+        {
+            throw new MutationException("The provided password is incorrect.");
+        }
+
+        return user;
     }
 }
