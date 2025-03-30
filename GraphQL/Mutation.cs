@@ -272,7 +272,7 @@ public class Mutation
     /// <summary>
     /// Generates a secure temporary code using cryptographic random number generation.
     /// </summary>
-    /// <returns>A base64-encoded random string of length TempCodeLength.</returns>
+    /// <returns>A base64-encoded random string of length <c>TempCodeLength</c>.</returns>
     private static string GenerateTempCode()
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(TempCodeLength))[
@@ -285,7 +285,7 @@ public class Mutation
     /// </summary>
     /// <param name="dbContext">The database context for user lookup.</param>
     /// <param name="input">The input parameters containing code purpose and user ID.</param>
-    /// <returns>An EmailMessage configured for the specific code purpose.</returns>
+    /// <returns>An <see cref="EmailMessage"/> configured for the specific code purpose.</returns>
     /// <exception cref="MutationException">
     /// Thrown when user ID is invalid or purpose is invalid.
     /// </exception>

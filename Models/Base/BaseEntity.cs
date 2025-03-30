@@ -39,7 +39,7 @@ public abstract class BaseEntity
     /// </summary>
     /// <value>
     /// A nullable <see cref="DateTime"/> in UTC format representing the last update timestamp.
-    /// This value is null if the entity has never been updated after creation
+    /// This value is <c>null</c> if the entity has never been updated after creation
     /// and maps to the 'updated_at' column in the database.
     /// </value>
     [Column("updated_at")]

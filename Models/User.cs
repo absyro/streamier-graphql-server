@@ -107,7 +107,7 @@ public class User : Base.BaseEntity
     /// timing attacks during password verification.
     /// </remarks>
     /// <exception cref="ArgumentException">
-    /// Thrown if either parameter is null or empty.
+    /// Thrown if either parameter is <c>null</c> or empty.
     /// </exception>
     public static bool ValidatePassword(string password, string hashedPassword)
     {

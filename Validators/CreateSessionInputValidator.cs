@@ -52,8 +52,8 @@ public sealed class CreateSessionInputValidator : AbstractValidator<Mutation.Cre
     /// </summary>
     /// <param name="password">The password string to evaluate.</param>
     /// <returns>
-    /// True if password meets minimum strength requirements (score >= MinimumPasswordScore),
-    /// false otherwise.
+    /// <c>true</c> if password meets minimum strength requirements (score >= MinimumPasswordScore),
+    /// <c>false</c> otherwise.
     /// </returns>
     private static bool BeAStrongPassword(string password)
     {
