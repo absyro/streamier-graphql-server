@@ -1,6 +1,7 @@
 namespace Server.Configuration;
 
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.RateLimiting;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Resend;
@@ -29,6 +30,35 @@ public static class ServiceCollectionExtensions
             .AddOptions()
             .AddHttpClient<ResendClient>()
             .Services.Configure<ResendClientOptions>(options => options.ApiToken = resendApiToken);
+
+        services.AddHealthChecks();
+
+        services.AddRateLimiter(options =>
+        {
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
+                httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                        key => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 15,
+                            Window = TimeSpan.FromSeconds(10),
+                        }
+                    )
+            );
+
+            options.OnRejected = async (context, cancellationToken) =>
+            {
+                var response = context.HttpContext.Response;
+
+                response.StatusCode = StatusCodes.Status429TooManyRequests;
+
+                if (!response.HasStarted)
+                {
+                    await response.WriteAsync("Too Many Requests", cancellationToken);
+                }
+            };
+        });
 
         services.AddValidators();
 

@@ -11,35 +11,6 @@ public static class Program
 
         builder.Services.AddApplicationServices(builder.Configuration);
 
-        builder.Services.AddHealthChecks();
-
-        builder.Services.AddRateLimiter(options =>
-        {
-            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
-                httpContext =>
-                    RateLimitPartition.GetFixedWindowLimiter(
-                        httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
-                        key => new FixedWindowRateLimiterOptions
-                        {
-                            PermitLimit = 15,
-                            Window = TimeSpan.FromSeconds(10),
-                        }
-                    )
-            );
-
-            options.OnRejected = async (context, cancellationToken) =>
-            {
-                var response = context.HttpContext.Response;
-
-                response.StatusCode = StatusCodes.Status429TooManyRequests;
-
-                if (!response.HasStarted)
-                {
-                    await response.WriteAsync("Too Many Requests", cancellationToken);
-                }
-            };
-        });
-
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())
