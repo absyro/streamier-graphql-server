@@ -1,32 +1,28 @@
-## TODO
+### Enable Two-Step Verification (2FA) for User Accounts**
 
-1. **Redis Caching for Frequently Accessed Data**
+- **2FA Flow**:
+  - Implement two-step verification (2FA) for accounts that have enabled this feature.
+  - The 2FA process will be handled via email.
+  - If 2FA is enabled, send a verification code to the user's email and return a **boolean** indicating success.
+  - After the user receives the verification code, they must enter it in the request to proceed.
+  - Extend the existing login mutation to accept a **login code** parameter to complete the authentication process.
 
-Implement Redis caching to store and quickly retrieve frequently accessed data, improving performance and reducing database load.
+- **Integration with Temporary Codes**:
+  - Implement flexibility by integrating this feature with **Temporary Codes**, ensuring temporary authentication codes work seamlessly.
 
-2. **Two-Step Verification for Accounts**
+### Automatic Expiration of Documents
 
-- Implement two-step verification (2FA) for accounts that have enabled this feature.
-- The 2FA process will be conducted via email.
-  - When a user requests to create a session, the response type should be a **union GraphQL** type.
-  - If 2FA is enabled on the account, send a verification code to the user's email and return a **boolean** value indicating the success of this step.
-- After the user receives the code, they will need to insert the code in the request.
-- The same mutation should allow submitting a **login code** as a parameter to complete the login process.
-- This implementation can be integrated with **Temporary Codes** for added flexibility.
+- Set up an automated process to invalidate documents once their expiration date has passed.
+- Ensure expired documents are not accessible or included in queries.
 
-3. **Expiration**
+### Automate Updates for Entities
 
-Documents should be invalidated once their expiration date has passed. (automated)
+- Use database triggers to automate entity updates.
 
-4. **Updating Entities**
+### Implement Unit Testing
 
-- To update entities, use database triggers. (automated)
-- All entities should have a "updated_at" column. (automated)
+- Write and integrate unit tests to ensure proper functionality across all features.
 
-5. **Created At Column**
+### Create Documentation
 
-All entities should have a "created_at" column. (automated)
-
-6. Use Unit testing
-
-7. Create docs
+- Develop comprehensive documentation for system features, setup, and usage.
