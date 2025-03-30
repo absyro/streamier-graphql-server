@@ -9,64 +9,84 @@ using Resend;
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
+    private const int RateLimitPermits = 15;
+
+    private static readonly TimeSpan RateLimitWindow = TimeSpan.FromSeconds(10);
+
     public static IServiceCollection AddApplicationServices(
         this IServiceCollection services,
         IConfiguration configuration
     )
     {
         ArgumentNullException.ThrowIfNull(services);
-
         ArgumentNullException.ThrowIfNull(configuration);
 
-        var postgresConnectionString =
-            configuration.GetConnectionString("Postgres")
-            ?? throw new Exceptions.ConfigurationException("Postgres connection string is missing");
+        services.AddConfiguration(configuration);
+        services.AddHttpServices(configuration);
+        services.AddHealthChecks();
+        services.AddRateLimiting();
+        services.AddValidators();
+        services.AddCorsPolicy();
+        services.AddDatabaseContext(configuration);
+        services.AddGraphQlServer();
 
+        return services;
+    }
+
+    private static IServiceCollection AddConfiguration(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
         var resendApiToken =
             configuration["Resend:ApiToken"]
             ?? throw new Exceptions.ConfigurationException("Resend API Token is missing");
 
-        services
-            .AddOptions()
-            .AddHttpClient<ResendClient>()
-            .Services.Configure<ResendClientOptions>(options => options.ApiToken = resendApiToken);
+        services.Configure<ResendClientOptions>(options => options.ApiToken = resendApiToken);
 
-        services.AddHealthChecks();
+        return services;
+    }
 
+    private static IServiceCollection AddHttpServices(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        services.AddHttpClient<ResendClient>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddRateLimiting(this IServiceCollection services)
+    {
         services.AddRateLimiter(options =>
         {
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
                 httpContext =>
                     RateLimitPartition.GetFixedWindowLimiter(
-                        httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
-                        key => new FixedWindowRateLimiterOptions
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString()
+                            ?? "anonymous",
+                        factory: _ => new FixedWindowRateLimiterOptions
                         {
-                            PermitLimit = 15,
-                            Window = TimeSpan.FromSeconds(10),
+                            PermitLimit = RateLimitPermits,
+                            Window = RateLimitWindow,
                         }
                     )
             );
 
             options.OnRejected = async (context, cancellationToken) =>
             {
-                var response = context.HttpContext.Response;
+                context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
 
-                response.StatusCode = StatusCodes.Status429TooManyRequests;
-
-                if (!response.HasStarted)
+                if (!context.HttpContext.Response.HasStarted)
                 {
-                    await response.WriteAsync("Too Many Requests", cancellationToken);
+                    await context.HttpContext.Response.WriteAsync(
+                        "Too Many Requests",
+                        cancellationToken
+                    );
                 }
             };
         });
-
-        services.AddValidators();
-
-        services.AddCorsPolicy();
-
-        services.AddDatabaseContext(postgresConnectionString);
-
-        services.AddGraphQlServer();
 
         return services;
     }
@@ -97,9 +117,13 @@ public static class ServiceCollectionExtensions
 
     private static IServiceCollection AddDatabaseContext(
         this IServiceCollection services,
-        string connectionString
+        IConfiguration configuration
     )
     {
+        var connectionString =
+            configuration.GetConnectionString("Postgres")
+            ?? throw new Exceptions.ConfigurationException("Postgres connection string is missing");
+
         services.AddDbContext<Contexts.AppDbContext>(options =>
             options.UseNpgsql(connectionString)
         );

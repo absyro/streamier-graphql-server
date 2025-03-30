@@ -1,57 +1,50 @@
 namespace Server.GraphQL;
 
+using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
 
 public class Query
 {
     [UseProjection]
     [UseFirstOrDefault]
-    [GraphQLDescription("This query returns a user which is associated with the provided session.")]
+    [GraphQLDescription("Returns a user associated with the provided session ID")]
     public IQueryable<Models.User>? GetUser(
         [Service] Contexts.AppDbContext dbContext,
         string sessionId
     )
     {
-        var session = dbContext
-            .Sessions.Where(session => session.Id == sessionId)
-            .Select(session => new { session.UserId })
+        var userId = dbContext
+            .Sessions.AsNoTracking()
+            .Where(s => s.Id == sessionId)
+            .Select(s => s.UserId)
             .FirstOrDefault();
 
-        if (session == null)
-        {
-            return null;
-        }
-
-        return dbContext.Users.Where(user => user.Id == session.UserId);
+        return string.IsNullOrEmpty(userId) ? null : dbContext.Users.Where(u => u.Id == userId);
     }
 
     [UsePaging]
     [UseProjection]
     [UseFiltering]
-    [GraphQLDescription(
-        "This query returns the sessions of a user. The user's session ID must be provided."
-    )]
+    [GraphQLDescription("Returns paginated sessions for a user identified by session ID")]
     public IQueryable<Models.Session>? GetUserSessions(
         [Service] Contexts.AppDbContext dbContext,
         string sessionId
     )
     {
-        var session = dbContext
-            .Sessions.Where(session => session.Id == sessionId)
-            .Select(session => new { session.UserId })
+        var userId = dbContext
+            .Sessions.AsNoTracking()
+            .Where(s => s.Id == sessionId)
+            .Select(s => s.UserId)
             .FirstOrDefault();
 
-        if (session == null)
-        {
-            return null;
-        }
-
-        return dbContext.Sessions.Where(s => s.UserId == session.UserId);
+        return string.IsNullOrEmpty(userId)
+            ? null
+            : dbContext.Sessions.Where(s => s.UserId == userId);
     }
 
-    [GraphQLDescription("This query returns whether or not a user exists.")]
-    public async Task<bool> DoesUserExist([Service] Contexts.AppDbContext dbContext, string email)
+    [GraphQLDescription("Checks if a user with the specified email exists")]
+    public Task<bool> DoesUserExist([Service] Contexts.AppDbContext dbContext, string email)
     {
-        return await dbContext.Users.AnyAsync(user => user.Email == email);
+        return dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email);
     }
 }

@@ -1,6 +1,5 @@
 namespace Server;
 
-using System.Threading.RateLimiting;
 using Server.Configuration;
 
 public static class Program
@@ -20,16 +19,13 @@ public static class Program
         else
         {
             app.UseExceptionHandler("/error");
-
             app.UseHttpsRedirection();
         }
 
         app.UseCors();
-
         app.UseRateLimiter();
 
         app.MapGraphQL();
-
         app.MapHealthChecks("/health");
 
         app.Run();
