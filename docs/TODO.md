@@ -26,3 +26,7 @@ Documents should be invalidated once their expiration date has passed. (automate
 5. **Created At Column**
 
 All entities should have a "created_at" column. (automated)
+
+6. Use Unit testing
+
+7. Create docs

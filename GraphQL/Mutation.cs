@@ -4,9 +4,12 @@ using System.Security.Cryptography;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Resend;
+using Snowflake.Net;
 
 public class Mutation
 {
+    private readonly IdWorker _snowflakeGenerator = new(1, 1);
+
     public class MutationException(string message) : Exception(message);
 
     public class CreateSessionInput
@@ -58,7 +61,7 @@ public class Mutation
 
                 user = new Models.User
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = _snowflakeGenerator.NextId().ToString(),
                     Email = input.Email,
                     IsEmailVerified = false,
                     HashedPassword = Models.User.HashPassword(input.Password),
@@ -107,7 +110,7 @@ public class Mutation
 
         var session = new Models.Session
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = _snowflakeGenerator.NextId().ToString(),
             UserId = user.Id,
             ExpiresAt = DateTime.UtcNow.AddDays(input.ExpirationDays),
         };
@@ -250,7 +253,7 @@ public class Mutation
         dbContext.TempCodes.Add(
             new Models.TempCode
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = _snowflakeGenerator.NextId().ToString(),
                 Purpose = input.Purpose,
                 ForId = input.ForId,
                 HashedCode = hashedCode,
