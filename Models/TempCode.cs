@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Cryptography;
 using System.Text;
+using RandomString4Net;
 
 /// <summary>
 /// Represents a temporary code in the system.
@@ -71,6 +72,17 @@ public class TempCode : Base.BaseEntity
         /// This temp code is for deleting a user's account.
         /// </summary>
         DeleteAccount,
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public static string GenerateCode(int length = 16)
+    {
+        return RandomString.GetString(Types.ALPHANUMERIC_LOWERCASE, length);
     }
 
     /// <summary>

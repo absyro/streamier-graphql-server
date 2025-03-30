@@ -2,12 +2,15 @@ namespace Server.Models;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Snowflake.Net;
 
 /// <summary>
 /// Represents a user in the system.
 /// </summary>
 public class User : Base.BaseEntity
 {
+    private static readonly IdWorker _idWorker = new(1, 1);
+
     /// <summary>
     /// The user's email address.
     /// </summary>
@@ -30,6 +33,15 @@ public class User : Base.BaseEntity
     [Required]
     [Column("hashed_password")]
     public required string HashedPassword { get; set; }
+
+    /// <summary>
+    /// Generates a unique ID using Snowflake.NET.
+    /// </summary>
+    /// <returns>A unique 64-bit ID.</returns>
+    public static long GenerateId()
+    {
+        return _idWorker.NextId();
+    }
 
     /// <summary>
     /// Hashes a password using BCrypt.

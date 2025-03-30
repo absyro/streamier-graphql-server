@@ -2,18 +2,13 @@ namespace Server.Models;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Security.Cryptography;
+using RandomString4Net;
 
 /// <summary>
 ///  Represents a user session in the system.
 /// </summary>
 public class Session : Base.BaseEntity
 {
-    /// <summary>
-    ///  The size of the session token in bytes.
-    /// </summary>
-    private const int SessionTokenSize = 128;
-
     /// <summary>
     /// The ID of the user associated with this session.
     /// </summary>
@@ -29,17 +24,11 @@ public class Session : Base.BaseEntity
     public required DateTime ExpiresAt { get; set; }
 
     /// <summary>
-    /// Generates a cryptographically secure random session token.
+    /// Generates a cryptographically secure random session id.
     /// </summary>
     /// <returns>A base64-encoded random session token.</returns>
-    public static string GenerateRandomSessionToken()
+    public static string GenerateSessionId()
     {
-        var tokenBytes = new byte[SessionTokenSize];
-
-        using var rng = RandomNumberGenerator.Create();
-
-        rng.GetBytes(tokenBytes);
-
-        return Convert.ToBase64String(tokenBytes);
+        return RandomString.GetString(Types.ALPHANUMERIC_MIXEDCASE_WITH_SYMBOLS, 128);
     }
 }
