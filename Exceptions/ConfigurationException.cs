@@ -1,4 +1,4 @@
-namespace Server.Exceptions;
+namespace StreamierServer.Exceptions;
 
 /// <summary>
 /// Represents a configuration exception.

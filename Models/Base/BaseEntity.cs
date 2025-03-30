@@ -1,4 +1,4 @@
-namespace Server.Models.Base;
+namespace StreamierServer.Models.Base;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;

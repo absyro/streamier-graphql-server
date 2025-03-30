@@ -1,8 +1,8 @@
-namespace Server.Contexts;
+namespace StreamierServer.Contexts;
 
 using Microsoft.EntityFrameworkCore;
-using Server.Models;
-using Server.Models.Base;
+using StreamierServer.Models;
+using StreamierServer.Models.Base;
 
 /// <summary>
 /// Represents the application database context.

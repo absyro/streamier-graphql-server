@@ -1,6 +1,6 @@
-namespace Server;
+namespace StreamierServer;
 
-using Server.Configuration;
+using StreamierServer.Configuration;
 
 /// <summary>
 /// The main entry point for the application.

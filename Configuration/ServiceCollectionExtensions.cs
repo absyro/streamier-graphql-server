@@ -1,4 +1,4 @@
-namespace Server.Configuration;
+namespace StreamierServer.Configuration;
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.RateLimiting;
