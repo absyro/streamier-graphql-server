@@ -15,7 +15,7 @@ using RandomString4Net;
 public class Session : Base.BaseEntity
 {
     /// <summary>
-    /// Gets or sets the unique identifier of the user associated with this session.
+    /// The unique identifier of the user associated with this session.
     /// </summary>
     /// <value>
     /// A string representing the user's unique ID. This field is required
@@ -26,7 +26,7 @@ public class Session : Base.BaseEntity
     public required string UserId { get; set; }
 
     /// <summary>
-    /// Gets or sets the UTC date and time when this session becomes invalid.
+    /// The UTC date and time when this session becomes invalid.
     /// </summary>
     /// <value>
     /// A <see cref="DateTime"/> in UTC format indicating when the session will expire.

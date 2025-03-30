@@ -13,7 +13,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 public abstract class BaseEntity
 {
     /// <summary>
-    /// Gets or sets the unique identifier for the entity.
+    /// The unique identifier for the entity.
     /// </summary>
     /// <value>
     /// A string that represents the primary key of the entity.
@@ -24,7 +24,7 @@ public abstract class BaseEntity
     public required string Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the UTC date and time when the entity was initially created.
+    /// The UTC date and time when the entity was initially created.
     /// </summary>
     /// <value>
     /// A <see cref="DateTime"/> in UTC format representing the creation timestamp.
@@ -35,7 +35,7 @@ public abstract class BaseEntity
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// Gets or sets the UTC date and time when the entity was last modified.
+    /// The UTC date and time when the entity was last modified.
     /// </summary>
     /// <value>
     /// A nullable <see cref="DateTime"/> in UTC format representing the last update timestamp.

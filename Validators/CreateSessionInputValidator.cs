@@ -17,7 +17,7 @@ public sealed class CreateSessionInputValidator : AbstractValidator<Mutation.Cre
     private const int MaximumExpirationDays = 90;
 
     /// <summary>
-    /// Initializes a new instance of the CreateSessionInputValidator class.
+    /// Initializes a new instance of the <see cref="CreateSessionInputValidator"/> class.
     /// Configures all validation rules for session creation input.
     /// </summary>
     public CreateSessionInputValidator()

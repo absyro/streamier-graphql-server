@@ -87,7 +87,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     }
 
     /// <summary>
-    /// Updates the timestamps for all modified entities that inherit from BaseEntity.
+    /// Updates the timestamps for all modified entities that inherit from <see cref="BaseEntity"/>.
     /// Sets the UpdatedAt field to the current UTC time for all modified entities.
     /// </summary>
     private void UpdateTimestamps()

@@ -7,7 +7,6 @@ using Resend;
 
 /// <summary>
 /// Represents the root GraphQL mutation type containing all available mutation operations.
-/// Handles user sessions, authentication, and temporary code generation for various purposes.
 /// </summary>
 public class Mutation
 {
@@ -82,7 +81,7 @@ public class Mutation
             _ => throw new MutationException("Invalid session mode."),
         };
 
-        if (user == null)
+        if (user is null)
         {
             throw new MutationException("Failed to find or create user.");
         }
@@ -106,7 +105,7 @@ public class Mutation
     /// </summary>
     /// <param name="dbContext">The database context for user operations.</param>
     /// <param name="input">The registration input parameters.</param>
-    /// <param name="existingUser">Existing user record if found, null otherwise.</param>
+    /// <param name="existingUser">Existing user record if found, <c>null</c> otherwise.</param>
     /// <returns>The newly created user.</returns>
     /// <exception cref="MutationException">
     /// Thrown when user already exists or creation fails.
@@ -153,7 +152,7 @@ public class Mutation
         Models.User? user
     )
     {
-        if (user == null)
+        if (user is null)
         {
             throw new MutationException("A user with the provided email address was not found.");
         }
@@ -186,7 +185,7 @@ public class Mutation
     /// </summary>
     /// <param name="dbContext">The database context for session operations.</param>
     /// <param name="input">The input containing the session ID to delete.</param>
-    /// <returns>True if deletion was successful.</returns>
+    /// <returns><c>true</c> if deletion was successful.</returns>
     /// <exception cref="MutationException">
     /// Thrown when the session ID is invalid or deletion fails.
     /// </exception>
@@ -221,7 +220,7 @@ public class Mutation
     /// <param name="dbContext">The database context for code operations.</param>
     /// <param name="resend">The email service client.</param>
     /// <param name="input">The input parameters for code generation.</param>
-    /// <returns>True if code creation and email sending were successful.</returns>
+    /// <returns><c>true</c> if code creation and email sending were successful.</returns>
     /// <exception cref="MutationException">
     /// Thrown when code already exists, user ID is invalid, or purpose is invalid.
     /// </exception>

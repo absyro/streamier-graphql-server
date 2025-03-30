@@ -16,7 +16,7 @@ public class User : Base.BaseEntity
     private static readonly IdWorker _idWorker = new(1, 1);
 
     /// <summary>
-    /// Gets or sets the user's email address used for authentication and communication.
+    /// The user's email address used for authentication and communication.
     /// </summary>
     /// <value>
     /// A valid email address string that is unique across the system.
@@ -29,7 +29,7 @@ public class User : Base.BaseEntity
     public required string Email { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the user's email address has been verified.
+    /// A value indicating whether the user's email address has been verified.
     /// </summary>
     /// <value>
     /// <c>true</c> if the email address has been verified through a confirmation process;
@@ -41,7 +41,7 @@ public class User : Base.BaseEntity
     public required bool IsEmailVerified { get; set; }
 
     /// <summary>
-    /// Gets or sets the bcrypt-hashed version of the user's password.
+    /// The bcrypt-hashed version of the user's password.
     /// </summary>
     /// <value>
     /// A string containing the password hash and salt in bcrypt format.
@@ -54,7 +54,7 @@ public class User : Base.BaseEntity
     public required string HashedPassword { get; set; }
 
     /// <summary>
-    /// Generates a unique identifier using the Snowflake algorithm.
+    /// Generates a unique identifier using the <see cref="Snowflake"/> algorithm.
     /// </summary>
     /// <returns>
     /// A string representation of a 64-bit unique ID that is time-ordered,

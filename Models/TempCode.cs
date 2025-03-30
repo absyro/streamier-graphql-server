@@ -16,7 +16,7 @@ using RandomString4Net;
 public class TempCode : Base.BaseEntity
 {
     /// <summary>
-    /// Gets or sets the intended use case for this temporary code.
+    /// The intended use case for this temporary code.
     /// </summary>
     /// <value>
     /// A <see cref="TempCodePurpose"/> enum value indicating the code's purpose.
@@ -27,7 +27,7 @@ public class TempCode : Base.BaseEntity
     public required TempCodePurpose Purpose { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the entity this code is associated with.
+    /// The identifier of the entity this code is associated with.
     /// </summary>
     /// <value>
     /// A string representing the ID of the user or entity this code relates to.
@@ -38,7 +38,7 @@ public class TempCode : Base.BaseEntity
     public required string ForId { get; set; }
 
     /// <summary>
-    /// Gets or sets the SHA256-hashed version of the temporary code.
+    /// The SHA256-hashed version of the temporary code.
     /// </summary>
     /// <value>
     /// A base64-encoded string representing the hashed code.
@@ -51,7 +51,7 @@ public class TempCode : Base.BaseEntity
     public required string HashedCode { get; set; }
 
     /// <summary>
-    /// Gets or sets the cryptographically random salt used for hashing the code.
+    /// The cryptographically random salt used for hashing the code.
     /// </summary>
     /// <value>
     /// A base64-encoded string representing the 16-byte random salt.
@@ -64,7 +64,7 @@ public class TempCode : Base.BaseEntity
     public required string CodeSalt { get; set; }
 
     /// <summary>
-    /// Gets or sets the UTC date and time when this code becomes invalid.
+    /// The UTC date and time when this code becomes invalid.
     /// </summary>
     /// <value>
     /// A <see cref="DateTime"/> in UTC format indicating the code's expiration.
