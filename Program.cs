@@ -10,11 +10,26 @@ public static class Program
 
         builder.Services.AddApplicationServices(builder.Configuration);
 
+        builder.Services.AddHealthChecks();
+
         var app = builder.Build();
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
+        else
+        {
+            app.UseExceptionHandler("/error");
+
+            app.UseHttpsRedirection();
+        }
 
         app.UseCors();
 
         app.MapGraphQL();
+
+        app.MapHealthChecks("/health");
 
         app.Run();
     }
