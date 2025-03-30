@@ -10,18 +10,19 @@ public class Mutation
 {
     private readonly IdWorker _snowflakeGenerator = new(1, 1);
 
+    private const int MaxSessionsPerUser = 20;
+
+    private const int TempCodeExpirationHours = 2;
+    private const int TempCodeLength = 16;
+
     public class MutationException(string message) : Exception(message);
 
-    public class CreateSessionInput
-    {
-        public required string Email { get; set; }
-
-        public required string Password { get; set; }
-
-        public CreateSessionMode Mode { get; set; }
-
-        public int ExpirationDays { get; set; }
-    }
+    public record CreateSessionInput(
+        string Email,
+        string Password,
+        CreateSessionMode Mode = CreateSessionMode.SignIn,
+        int ExpirationDays = 30
+    );
 
     public enum CreateSessionMode
     {
@@ -30,78 +31,23 @@ public class Mutation
     }
 
     [Error(typeof(MutationException))]
-    [GraphQLDescription(
-        "This mutation creates a new session. This method is also used for signing in and signing up."
-    )]
+    [GraphQLDescription("Creates a new session. Used for both signing in and signing up.")]
     public async Task<Models.Session> CreateSession(
         [Service] Contexts.AppDbContext dbContext,
         [Service] IValidator<CreateSessionInput> validator,
         CreateSessionInput input
     )
     {
-        var validationResult = await validator.ValidateAsync(input);
+        await validator.ValidateAndThrowAsync(input);
 
-        if (!validationResult.IsValid)
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == input.Email);
+
+        user = input.Mode switch
         {
-            throw new MutationException(validationResult.Errors.First().ErrorMessage);
-        }
-
-        var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Email == input.Email);
-
-        switch (input.Mode)
-        {
-            case CreateSessionMode.SignUp:
-            {
-                if (user != null)
-                {
-                    throw new MutationException(
-                        "A user with the provided email address already exists."
-                    );
-                }
-
-                user = new Models.User
-                {
-                    Id = _snowflakeGenerator.NextId().ToString(),
-                    Email = input.Email,
-                    IsEmailVerified = false,
-                    HashedPassword = Models.User.HashPassword(input.Password),
-                };
-
-                dbContext.Users.Add(user);
-
-                await dbContext.SaveChangesAsync();
-
-                break;
-            }
-
-            case CreateSessionMode.SignIn:
-            {
-                if (user == null)
-                {
-                    throw new MutationException(
-                        "A user with the provided email address was not found."
-                    );
-                }
-
-                var userSessionsCount = await dbContext.Sessions.CountAsync(session =>
-                    session.UserId == user.Id
-                );
-
-                if (userSessionsCount >= 20)
-                {
-                    throw new MutationException(
-                        "The maximum number of sessions for this user has been reached."
-                    );
-                }
-
-                if (!Models.User.ValidatePassword(input.Password, user.HashedPassword))
-                {
-                    throw new MutationException("The provided password is incorrect.");
-                }
-
-                break;
-            }
-        }
+            CreateSessionMode.SignUp => await HandleSignUp(dbContext, input, user),
+            CreateSessionMode.SignIn => await HandleSignIn(dbContext, input, user),
+            _ => throw new MutationException("Invalid session mode."),
+        };
 
         if (user == null)
         {
@@ -122,20 +68,71 @@ public class Mutation
         return session;
     }
 
-    public class DeleteSessionInput
+    private async Task<Models.User> HandleSignUp(
+        Contexts.AppDbContext dbContext,
+        CreateSessionInput input,
+        Models.User? existingUser
+    )
     {
-        public required string SessionId { get; set; }
+        if (existingUser != null)
+        {
+            throw new MutationException("A user with the provided email address already exists.");
+        }
+
+        var newUser = new Models.User
+        {
+            Id = _snowflakeGenerator.NextId().ToString(),
+            Email = input.Email,
+            IsEmailVerified = false,
+            HashedPassword = Models.User.HashPassword(input.Password),
+        };
+
+        dbContext.Users.Add(newUser);
+
+        await dbContext.SaveChangesAsync();
+
+        return newUser;
     }
 
+    private async Task<Models.User> HandleSignIn(
+        Contexts.AppDbContext dbContext,
+        CreateSessionInput input,
+        Models.User? user
+    )
+    {
+        if (user == null)
+        {
+            throw new MutationException("A user with the provided email address was not found.");
+        }
+
+        var userSessionsCount = await dbContext.Sessions.CountAsync(s => s.UserId == user.Id);
+
+        if (userSessionsCount >= MaxSessionsPerUser)
+        {
+            throw new MutationException(
+                $"The maximum number of sessions ({MaxSessionsPerUser}) for this user has been reached."
+            );
+        }
+
+        if (!Models.User.ValidatePassword(input.Password, user.HashedPassword))
+        {
+            throw new MutationException("The provided password is incorrect.");
+        }
+
+        return user;
+    }
+
+    public record DeleteSessionInput(string SessionId);
+
     [Error(typeof(MutationException))]
-    [GraphQLDescription("This mutation deletes a session.")]
+    [GraphQLDescription("Deletes a session.")]
     public async Task<bool> DeleteSession(
         [Service] Contexts.AppDbContext dbContext,
         DeleteSessionInput input
     )
     {
         var session =
-            await dbContext.Sessions.FirstOrDefaultAsync(session => session.Id == input.SessionId)
+            await dbContext.Sessions.FirstOrDefaultAsync(s => s.Id == input.SessionId)
             ?? throw new MutationException("Invalid session ID.");
 
         dbContext.Sessions.Remove(session);
@@ -145,110 +142,34 @@ public class Mutation
         return true;
     }
 
-    public class CreateTempCodeForIdInput
-    {
-        public Models.TempCode.TempCodePurpose Purpose { get; set; }
-
-        public required string ForId { get; set; }
-    }
+    public record CreateTempCodeForIdInput(Models.TempCode.TempCodePurpose Purpose, string ForId);
 
     [Error(typeof(MutationException))]
-    [GraphQLDescription("This mutation creates a temp code for the given entity ID.")]
+    [GraphQLDescription("Creates a temp code for the given entity ID.")]
     public async Task<bool> CreateTempCodeForId(
         [Service] Contexts.AppDbContext dbContext,
         [Service] IResend resend,
         CreateTempCodeForIdInput input
     )
     {
-        var isTempCodeRegistered = await dbContext.TempCodes.AnyAsync(tempCode =>
-            tempCode.Purpose == input.Purpose && tempCode.ForId == input.ForId
-        );
-
-        if (isTempCodeRegistered)
+        if (
+            await dbContext.TempCodes.AnyAsync(c =>
+                c.Purpose == input.Purpose && c.ForId == input.ForId
+            )
+        )
         {
             throw new MutationException(
                 "Same code with the same purpose has already been registered for the same ID."
             );
         }
 
-        var code = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16))[..16];
+        var code = GenerateTempCode();
 
         var codeSalt = Models.TempCode.GenerateCodeSalt();
 
         var hashedCode = Models.TempCode.HashCode(code, codeSalt);
 
-        var message = new EmailMessage { From = "core@botstudioo.com" };
-
-        switch (input.Purpose)
-        {
-            case Models.TempCode.TempCodePurpose.ChangePassword:
-            {
-                var user =
-                    await dbContext
-                        .Users.Where(user => user.Id == input.ForId)
-                        .Select(user => new { user.Email })
-                        .FirstOrDefaultAsync() ?? throw new MutationException("Invalid user ID.");
-
-                message.To.Add(user.Email);
-
-                message.Subject = "Change Password";
-
-                message.HtmlBody = "<strong>it works!</strong>";
-
-                break;
-            }
-
-            case Models.TempCode.TempCodePurpose.ChangeEmail:
-            {
-                var user =
-                    await dbContext
-                        .Users.Where(user => user.Id == input.ForId)
-                        .Select(user => new { user.Email })
-                        .FirstOrDefaultAsync() ?? throw new MutationException("Invalid user ID.");
-
-                message.To.Add(user.Email);
-
-                message.Subject = "Change Email";
-
-                message.HtmlBody = "<strong>it works!</strong>";
-
-                break;
-            }
-
-            case Models.TempCode.TempCodePurpose.EmailVerification:
-            {
-                var user =
-                    await dbContext
-                        .Users.Where(user => user.Id == input.ForId)
-                        .Select(user => new { user.Email })
-                        .FirstOrDefaultAsync() ?? throw new MutationException("Invalid user ID.");
-
-                message.To.Add(user.Email);
-
-                message.Subject = "Email Verification";
-
-                message.HtmlBody = "<strong>it works!</strong>";
-
-                break;
-            }
-
-            case Models.TempCode.TempCodePurpose.DeleteAccount:
-            {
-                var user =
-                    await dbContext
-                        .Users.Where(user => user.Id == input.ForId)
-                        .Select(user => new { user.Email })
-                        .FirstOrDefaultAsync() ?? throw new MutationException("Invalid user ID.");
-
-                message.To.Add(user.Email);
-
-                message.Subject = "Removing Account";
-
-                message.HtmlBody = "<strong>it works!</strong>";
-
-                break;
-            }
-        }
+        var message = await CreateEmailMessage(dbContext, input);
 
         dbContext.TempCodes.Add(
             new Models.TempCode
@@ -258,7 +179,7 @@ public class Mutation
                 ForId = input.ForId,
                 HashedCode = hashedCode,
                 CodeSalt = codeSalt,
-                ExpiresAt = DateTime.UtcNow.AddHours(2),
+                ExpiresAt = DateTime.UtcNow.AddHours(TempCodeExpirationHours),
             }
         );
 
@@ -267,5 +188,41 @@ public class Mutation
         await resend.EmailSendAsync(message);
 
         return true;
+    }
+
+    private static string GenerateTempCode()
+    {
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(TempCodeLength))[
+            ..TempCodeLength
+        ];
+    }
+
+    private static async Task<EmailMessage> CreateEmailMessage(
+        Contexts.AppDbContext dbContext,
+        CreateTempCodeForIdInput input
+    )
+    {
+        var user =
+            await dbContext
+                .Users.Where(u => u.Id == input.ForId)
+                .Select(u => new { u.Email })
+                .FirstOrDefaultAsync() ?? throw new MutationException("Invalid user ID.");
+
+        var subject = input.Purpose switch
+        {
+            Models.TempCode.TempCodePurpose.ChangePassword => "Change Password",
+            Models.TempCode.TempCodePurpose.ChangeEmail => "Change Email",
+            Models.TempCode.TempCodePurpose.EmailVerification => "Email Verification",
+            Models.TempCode.TempCodePurpose.DeleteAccount => "Removing Account",
+            _ => throw new MutationException("Invalid purpose."),
+        };
+
+        return new EmailMessage
+        {
+            From = "core@botstudioo.com",
+            To = { user.Email },
+            Subject = subject,
+            HtmlBody = "<strong>it works!</strong>",
+        };
     }
 }
