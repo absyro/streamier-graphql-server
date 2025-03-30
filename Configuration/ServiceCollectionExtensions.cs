@@ -7,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Resend;
 
 /// <summary>
-/// Represents the extension methods for the service collection.
+/// Provides extension methods for configuring and adding services to the IServiceCollection.
+/// This class centralizes all service registrations for the application.
 /// </summary>
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
@@ -17,11 +18,13 @@ public static class ServiceCollectionExtensions
     private static readonly TimeSpan RateLimitWindow = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// Adds the application services to the service collection.
+    /// Registers all application services with the dependency injection container.
+    /// This is the main entry point for service configuration.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The configuration.</param>
-    /// <returns>The service collection.</returns>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <param name="configuration">The application configuration containing settings.</param>
+    /// <returns>The configured IServiceCollection for method chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if services or configuration is null.</exception>
     public static IServiceCollection AddApplicationServices(
         this IServiceCollection services,
         IConfiguration configuration
@@ -42,6 +45,13 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Configures application settings from the configuration.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The configured IServiceCollection.</returns>
+    /// <exception cref="Exceptions.ConfigurationException">Thrown if required configuration is missing.</exception>
     private static IServiceCollection AddConfiguration(
         this IServiceCollection services,
         IConfiguration configuration
@@ -56,6 +66,12 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers HTTP client services used by the application.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The configured IServiceCollection.</returns>
     private static IServiceCollection AddHttpServices(
         this IServiceCollection services,
         IConfiguration configuration
@@ -66,6 +82,12 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Configures rate limiting for the application.
+    /// Uses a fixed window rate limiter with IP-based partitioning.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <returns>The configured IServiceCollection.</returns>
     private static IServiceCollection AddRateLimiting(this IServiceCollection services)
     {
         services.AddRateLimiter(options =>
@@ -100,6 +122,11 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers FluentValidation validators and other validation-related services.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <returns>The configured IServiceCollection.</returns>
     private static IServiceCollection AddValidators(this IServiceCollection services)
     {
         services.AddScoped<
@@ -112,6 +139,12 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Configures CORS (Cross-Origin Resource Sharing) policy for the application.
+    /// Uses a permissive policy that allows requests from any origin, with any header and method.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <returns>The configured IServiceCollection.</returns>
     private static IServiceCollection AddCorsPolicy(this IServiceCollection services)
     {
         services.AddCors(options =>
@@ -124,6 +157,14 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Registers the application's database context with the dependency injection container.
+    /// Configures the context to use PostgreSQL with the connection string from configuration.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The configured IServiceCollection.</returns>
+    /// <exception cref="Exceptions.ConfigurationException">Thrown if the connection string is missing.</exception>
     private static IServiceCollection AddDatabaseContext(
         this IServiceCollection services,
         IConfiguration configuration
@@ -140,6 +181,12 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Configures the GraphQL server with all necessary types, conventions, and features.
+    /// Includes support for queries, mutations, filtering, projections, and paging.
+    /// </summary>
+    /// <param name="services">The IServiceCollection to add services to.</param>
+    /// <returns>The configured IServiceCollection.</returns>
     private static IServiceCollection AddGraphQlServer(this IServiceCollection services)
     {
         services

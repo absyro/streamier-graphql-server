@@ -7,88 +7,118 @@ using System.Text;
 using RandomString4Net;
 
 /// <summary>
-/// Represents a temporary code in the system.
+/// Represents a temporary security code used for sensitive operations in the system.
 /// </summary>
+/// <remarks>
+/// This entity stores hashed versions of temporary codes along with their salts,
+/// following security best practices. The actual code values are never stored directly.
+/// </remarks>
 public class TempCode : Base.BaseEntity
 {
     /// <summary>
-    /// The purpose of the temp code.
+    /// Gets or sets the intended use case for this temporary code.
     /// </summary>
+    /// <value>
+    /// A <see cref="TempCodePurpose"/> enum value indicating the code's purpose.
+    /// This field is required and maps to the 'purpose' column in the database.
+    /// </value>
     [Required]
     [Column("purpose")]
     public required TempCodePurpose Purpose { get; set; }
 
     /// <summary>
-    /// The ID of the entity associated with the temp code.
+    /// Gets or sets the identifier of the entity this code is associated with.
     /// </summary>
+    /// <value>
+    /// A string representing the ID of the user or entity this code relates to.
+    /// This field is required and maps to the 'for_id' column in the database.
+    /// </value>
     [Required]
     [Column("for_id")]
     public required string ForId { get; set; }
 
     /// <summary>
-    /// The hashed temp code.
+    /// Gets or sets the SHA256-hashed version of the temporary code.
     /// </summary>
+    /// <value>
+    /// A base64-encoded string representing the hashed code.
+    /// This field is excluded from GraphQL responses and is required.
+    /// Maps to the 'hashed_code' column in the database.
+    /// </value>
     [GraphQLIgnore]
     [Required]
     [Column("hashed_code")]
     public required string HashedCode { get; set; }
 
     /// <summary>
-    /// The salt used to hash the temp code.
+    /// Gets or sets the cryptographically random salt used for hashing the code.
     /// </summary>
+    /// <value>
+    /// A base64-encoded string representing the 16-byte random salt.
+    /// This field is excluded from GraphQL responses and is required.
+    /// Maps to the 'code_salt' column in the database.
+    /// </value>
     [GraphQLIgnore]
     [Required]
     [Column("code_salt")]
     public required string CodeSalt { get; set; }
 
     /// <summary>
-    /// The expiration date of the temp code.
+    /// Gets or sets the UTC date and time when this code becomes invalid.
     /// </summary>
+    /// <value>
+    /// A <see cref="DateTime"/> in UTC format indicating the code's expiration.
+    /// After this time, the code cannot be used for verification.
+    /// This field is required and maps to the 'expires_at' column in the database.
+    /// </value>
     [Required]
     [Column("expires_at")]
     public required DateTime ExpiresAt { get; set; }
 
     /// <summary>
-    /// The purpose of the temp code.
+    /// Specifies the possible purposes for temporary codes in the system.
     /// </summary>
     public enum TempCodePurpose
     {
         /// <summary>
-        /// This temp code is for changing a user's password.
+        /// Code used for password reset or change operations.
         /// </summary>
         ChangePassword,
 
         /// <summary>
-        /// This temp code is for changing a user's email address.
+        /// Code used for email address change verification.
         /// </summary>
         ChangeEmail,
 
         /// <summary>
-        ///  This temp code is for verifying a user's email address.
+        /// Code used for initial email address verification.
         /// </summary>
         EmailVerification,
 
         /// <summary>
-        /// This temp code is for deleting a user's account.
+        /// Code used for account deletion confirmation.
         /// </summary>
         DeleteAccount,
     }
 
     /// <summary>
-    ///
+    /// Generates a random alphanumeric code suitable for temporary verification purposes.
     /// </summary>
-    /// <param name="length"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public static string GenerateCode(int length = 16)
+    /// <returns>A lowercase alphanumeric string of 16 characters.</returns>
+    public static string GenerateCode()
     {
-        return RandomString.GetString(Types.ALPHANUMERIC_LOWERCASE, length);
+        return RandomString.GetString(Types.ALPHANUMERIC_LOWERCASE, 16);
     }
 
     /// <summary>
-    /// Generates a cryptographically secure random salt for hashing the temp code.
+    /// Generates a cryptographically secure random salt for code hashing.
     /// </summary>
-    /// <returns>A base64-encoded random salt.</returns>
+    /// <returns>
+    /// A base64-encoded string representing 16 bytes of cryptographically random data.
+    /// </returns>
+    /// <remarks>
+    /// This method uses <see cref="RandomNumberGenerator"/> to ensure cryptographic strength.
+    /// </remarks>
     public static string GenerateCodeSalt()
     {
         var buffer = new byte[16];
@@ -101,11 +131,16 @@ public class TempCode : Base.BaseEntity
     }
 
     /// <summary>
-    /// Hashes a temp code using SHA256.
+    /// Computes the SHA256 hash of a code combined with a salt.
     /// </summary>
-    /// <param name="code">The temp code to hash.</param>
-    /// <param name="salt">The salt to use for hashing.</param>
-    /// <returns>The hashed temp code.</returns>
+    /// <param name="code">The plaintext code to hash.</param>
+    /// <param name="salt">The salt value to combine with the code.</param>
+    /// <returns>
+    /// A base64-encoded string representing the SHA256 hash of the salted code.
+    /// </returns>
+    /// <remarks>
+    /// The hashing process follows the pattern: SHA256(code + salt).
+    /// </remarks>
     public static string HashCode(string code, string salt)
     {
         var saltedCode = code + salt;
@@ -116,16 +151,25 @@ public class TempCode : Base.BaseEntity
     }
 
     /// <summary>
-    /// Validates a temp code against a hashed temp code using SHA256.
+    /// Verifies whether a provided code matches the stored hashed code.
     /// </summary>
-    /// <param name="code">The temp code to validate.</param>
-    /// <param name="hashedCode">The hashed temp code to validate against.</param>
-    /// <param name="salt">The salt used to hash the temp code.</param>
-    /// <returns>True if the temp code is valid, false otherwise.</returns>
+    /// <param name="code">The plaintext code to verify.</param>
+    /// <param name="hashedCode">The stored hashed code to compare against.</param>
+    /// <param name="salt">The salt used in the original hashing operation.</param>
+    /// <returns>
+    /// <c>true</c> if the provided code produces the same hash when combined with the salt;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// This method performs a constant-time comparison to prevent timing attacks.
+    /// </remarks>
     public static bool ValidateCode(string code, string hashedCode, string salt)
     {
         var hashedInput = HashCode(code, salt);
 
-        return hashedInput == hashedCode;
+        return CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(hashedInput),
+            Encoding.UTF8.GetBytes(hashedCode)
+        );
     }
 }

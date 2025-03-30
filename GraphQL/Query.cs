@@ -4,16 +4,20 @@ using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
 
 /// <summary>
-/// Represents the GraphQL query operations.
+/// Represents the root GraphQL query type containing all available query operations.
+/// This class provides methods to fetch user data, session information, and perform user existence checks.
 /// </summary>
 public class Query
 {
     /// <summary>
-    /// Returns a user identified by session ID
+    /// Retrieves a single user by their session ID.
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="sessionId"></param>
-    /// <returns>The user</returns>
+    /// <param name="dbContext">The database context for accessing user data.</param>
+    /// <param name="sessionId">The session ID used to identify the user.</param>
+    /// <returns>
+    /// An IQueryable of User or null if no user is found for the given session ID.
+    /// The queryable allows for additional filtering and projection at the GraphQL level.
+    /// </returns>
     [UseProjection]
     [UseFirstOrDefault]
     public IQueryable<Models.User>? GetUser(
@@ -31,11 +35,15 @@ public class Query
     }
 
     /// <summary>
-    /// Returns a list of sessions for the user identified by session ID
+    /// Retrieves all sessions associated with a user identified by a session ID.
+    /// Supports paging, projection, and filtering.
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="sessionId"></param>
-    /// <returns>A list of sessions</returns>
+    /// <param name="dbContext">The database context for accessing session data.</param>
+    /// <param name="sessionId">The session ID used to identify the user.</param>
+    /// <returns>
+    /// An IQueryable of Session or null if no user is found for the given session ID.
+    /// The result supports paging, filtering, and projection at the GraphQL level.
+    /// </returns>
     [UsePaging]
     [UseProjection]
     [UseFiltering]
@@ -56,11 +64,13 @@ public class Query
     }
 
     /// <summary>
-    /// Checks if a user exists
+    /// Checks whether a user with the specified email exists in the system.
     /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="email"></param>
-    /// <returns>True if the user exists</returns>
+    /// <param name="dbContext">The database context for accessing user data.</param>
+    /// <param name="email">The email address to check for existence.</param>
+    /// <returns>
+    /// A task that resolves to true if a user with the email exists, false otherwise.
+    /// </returns>
     public Task<bool> DoesUserExist([Service] Contexts.AppDbContext dbContext, string email)
     {
         return dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email);

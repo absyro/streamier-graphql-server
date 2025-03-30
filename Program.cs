@@ -3,13 +3,14 @@ namespace StreamierServer;
 using StreamierServer.Configuration;
 
 /// <summary>
-/// The main entry point for the application.
+/// The main entry point for the application. Configures and runs the web server.
 /// </summary>
 public static class Program
 {
     /// <summary>
-    /// The main entry point for the application.
+    /// Application entry point. Configures the web host, services, middleware pipeline, and starts the application.
     /// </summary>
+    /// <param name="args">Command line arguments passed during application startup.</param>
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
