@@ -38,9 +38,9 @@ public class User : Base.BaseEntity
     /// Generates a unique ID using Snowflake.NET.
     /// </summary>
     /// <returns>A unique 64-bit ID.</returns>
-    public static long GenerateId()
+    public static string GenerateId()
     {
-        return _idWorker.NextId();
+        return _idWorker.NextId().ToString();
     }
 
     /// <summary>

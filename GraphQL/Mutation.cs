@@ -4,15 +4,12 @@ using System.Security.Cryptography;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Resend;
-using Snowflake.Net;
 
 /// <summary>
 /// Represents the GraphQL mutation operations.
 /// </summary>
 public class Mutation
 {
-    private readonly IdWorker _snowflakeGenerator = new(1, 1);
-
     private const int MaxSessionsPerUser = 20;
 
     private const int TempCodeExpirationHours = 2;
@@ -87,7 +84,7 @@ public class Mutation
 
         var session = new Models.Session
         {
-            Id = _snowflakeGenerator.NextId().ToString(),
+            Id = Models.Session.GenerateSessionId(),
             UserId = user.Id,
             ExpiresAt = DateTime.UtcNow.AddDays(input.ExpirationDays),
         };
@@ -112,7 +109,7 @@ public class Mutation
 
         var newUser = new Models.User
         {
-            Id = _snowflakeGenerator.NextId().ToString(),
+            Id = Models.User.GenerateId(),
             Email = input.Email,
             IsEmailVerified = false,
             HashedPassword = Models.User.HashPassword(input.Password),
@@ -227,7 +224,7 @@ public class Mutation
         dbContext.TempCodes.Add(
             new Models.TempCode
             {
-                Id = _snowflakeGenerator.NextId().ToString(),
+                Id = Models.TempCode.GenerateCode(),
                 Purpose = input.Purpose,
                 ForId = input.ForId,
                 HashedCode = hashedCode,
