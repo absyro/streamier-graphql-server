@@ -1,7 +1,6 @@
 namespace StreamierServer.Models.Base;
 
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 /// <summary>
 /// Abstract base class that provides common properties for all entities in the system.
