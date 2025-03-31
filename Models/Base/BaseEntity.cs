@@ -38,10 +38,10 @@ public abstract class BaseEntity
     /// The UTC date and time when the entity was last modified.
     /// </summary>
     /// <value>
-    /// A nullable <see cref="DateTime"/> in UTC format representing the last update timestamp.
-    /// This value is <c>null</c> if the entity has never been updated after creation
+    /// A <see cref="DateTime"/> in UTC format representing the last update timestamp.
+    /// This value is automatically set to the current UTC time when the entity is created
     /// and maps to the 'updated_at' column in the database.
     /// </value>
     [Column("updated_at")]
-    public DateTime? UpdatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
