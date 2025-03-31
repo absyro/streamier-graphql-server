@@ -1,7 +1,6 @@
 namespace StreamierServer.Models;
 
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Snowflake.Net;
 
 /// <summary>
@@ -21,11 +20,9 @@ public class User : Base.BaseEntity
     /// <value>
     /// A valid email address string that is unique across the system.
     /// This field is required and validated for proper email format.
-    /// Maps to the 'email' column in the database.
     /// </value>
     [Required]
     [EmailAddress]
-    [Column("email")]
     public required string Email { get; set; }
 
     /// <summary>
@@ -33,11 +30,9 @@ public class User : Base.BaseEntity
     /// </summary>
     /// <value>
     /// <c>true</c> if the email address has been verified through a confirmation process;
-    /// otherwise, <c>false</c>. This field is required and maps to the 'is_email_verified'
-    /// column in the database.
+    /// otherwise, <c>false</c>. This field is required.
     /// </value>
     [Required]
-    [Column("is_email_verified")]
     public required bool IsEmailVerified { get; set; }
 
     /// <summary>
@@ -46,11 +41,9 @@ public class User : Base.BaseEntity
     /// <value>
     /// A string containing the password hash and salt in bcrypt format.
     /// This field is excluded from GraphQL responses and is required.
-    /// Maps to the 'hashed_password' column in the database.
     /// </value>
     [GraphQLIgnore]
     [Required]
-    [Column("hashed_password")]
     public required string HashedPassword { get; set; }
 
     /// <summary>

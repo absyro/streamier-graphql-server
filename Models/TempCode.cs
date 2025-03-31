@@ -1,7 +1,6 @@
 namespace StreamierServer.Models;
 
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Cryptography;
 using System.Text;
 using RandomString4Net;
@@ -20,10 +19,9 @@ public class TempCode : Base.BaseEntity
     /// </summary>
     /// <value>
     /// A <see cref="TempCodePurpose"/> enum value indicating the code's purpose.
-    /// This field is required and maps to the 'purpose' column in the database.
+    /// This field is required.
     /// </value>
     [Required]
-    [Column("purpose")]
     public required TempCodePurpose Purpose { get; set; }
 
     /// <summary>
@@ -31,10 +29,9 @@ public class TempCode : Base.BaseEntity
     /// </summary>
     /// <value>
     /// A string representing the ID of the user or entity this code relates to.
-    /// This field is required and maps to the 'for_id' column in the database.
+    /// This field is required.
     /// </value>
     [Required]
-    [Column("for_id")]
     public required string ForId { get; set; }
 
     /// <summary>
@@ -43,11 +40,9 @@ public class TempCode : Base.BaseEntity
     /// <value>
     /// A base64-encoded string representing the hashed code.
     /// This field is excluded from GraphQL responses and is required.
-    /// Maps to the 'hashed_code' column in the database.
     /// </value>
     [GraphQLIgnore]
     [Required]
-    [Column("hashed_code")]
     public required string HashedCode { get; set; }
 
     /// <summary>
@@ -56,11 +51,9 @@ public class TempCode : Base.BaseEntity
     /// <value>
     /// A base64-encoded string representing the 16-byte random salt.
     /// This field is excluded from GraphQL responses and is required.
-    /// Maps to the 'code_salt' column in the database.
     /// </value>
     [GraphQLIgnore]
     [Required]
-    [Column("code_salt")]
     public required string CodeSalt { get; set; }
 
     /// <summary>
@@ -69,10 +62,9 @@ public class TempCode : Base.BaseEntity
     /// <value>
     /// A <see cref="DateTime"/> in UTC format indicating the code's expiration.
     /// After this time, the code cannot be used for verification.
-    /// This field is required and maps to the 'expires_at' column in the database.
+    /// This field is required.
     /// </value>
     [Required]
-    [Column("expires_at")]
     public required DateTime ExpiresAt { get; set; }
 
     /// <summary>

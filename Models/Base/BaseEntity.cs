@@ -17,10 +17,9 @@ public abstract class BaseEntity
     /// </summary>
     /// <value>
     /// A string that represents the primary key of the entity.
-    /// This value is required and maps to the 'id' column in the database.
+    /// This field is required.
     /// </value>
     [Key]
-    [Column("id")]
     public required string Id { get; set; }
 
     /// <summary>
@@ -28,10 +27,8 @@ public abstract class BaseEntity
     /// </summary>
     /// <value>
     /// A <see cref="DateTime"/> in UTC format representing the creation timestamp.
-    /// This value is automatically set to the current UTC time when the entity is created
-    /// and maps to the 'created_at' column in the database.
+    /// This field is automatically set to the current UTC time when the entity is created.
     /// </value>
-    [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
@@ -39,9 +36,7 @@ public abstract class BaseEntity
     /// </summary>
     /// <value>
     /// A <see cref="DateTime"/> in UTC format representing the last update timestamp.
-    /// This value is automatically set to the current UTC time when the entity is created
-    /// and maps to the 'updated_at' column in the database.
+    /// This field is automatically set to the current UTC time when the entity is created.
     /// </value>
-    [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

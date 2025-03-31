@@ -175,7 +175,7 @@ public static class ServiceCollectionExtensions
             ?? throw new Exceptions.ConfigurationException("Postgres connection string is missing");
 
         services.AddDbContext<Contexts.AppDbContext>(options =>
-            options.UseNpgsql(connectionString)
+            options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention()
         );
 
         return services;
