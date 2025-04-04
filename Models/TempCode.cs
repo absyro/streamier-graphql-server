@@ -149,8 +149,8 @@ public class TempCode : Base.BaseEntity
     /// <param name="hashedCode">The stored hashed code to compare against.</param>
     /// <param name="salt">The salt used in the original hashing operation.</param>
     /// <returns>
-    /// <c>true</c> if the provided code produces the same hash when combined with the salt;
-    /// otherwise, <c>false</c>.
+    /// true if the provided code produces the same hash when combined with the salt;
+    /// otherwise, false.
     /// </returns>
     /// <remarks>
     /// This method performs a constant-time comparison to prevent timing attacks.

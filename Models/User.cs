@@ -29,8 +29,8 @@ public class User : Base.BaseEntity
     /// A value indicating whether the user's email address has been verified.
     /// </summary>
     /// <value>
-    /// <c>true</c> if the email address has been verified through a confirmation process;
-    /// otherwise, <c>false</c>. This field is required.
+    /// true if the email address has been verified through a confirmation process;
+    /// otherwise, false. This field is required.
     /// </value>
     [Required]
     public required bool IsEmailVerified { get; set; }
@@ -57,7 +57,7 @@ public class User : Base.BaseEntity
     /// Uses cryptographically secure random generation to create 8-character
     /// lowercase alphanumeric IDs, verifying uniqueness against the database.
     /// </remarks>
-    public static async Task<string> GenerateId(AppDbContext dbContext)
+    public static async Task<string> GenerateIdAsync(AppDbContext dbContext)
     {
         string id;
 
@@ -92,7 +92,7 @@ public class User : Base.BaseEntity
     /// <param name="password">The plaintext password to verify.</param>
     /// <param name="hashedPassword">The stored bcrypt hash to compare against.</param>
     /// <returns>
-    /// <c>true</c> if the password matches the hash; otherwise, <c>false</c>.
+    /// true if the password matches the hash; otherwise, false.
     /// </returns>
     /// <remarks>
     /// This method uses bcrypt's constant-time comparison to prevent

@@ -111,7 +111,7 @@ public class Mutation
     /// </summary>
     /// <param name="dbContext">The database context for session operations.</param>
     /// <param name="input">The input containing the session ID to delete.</param>
-    /// <returns><c>true</c> if deletion was successful.</returns>
+    /// <returns>true if deletion was successful.</returns>
     /// <exception cref="MutationException">
     /// Thrown when the session ID is invalid or deletion fails.
     /// </exception>
@@ -146,7 +146,7 @@ public class Mutation
     /// <param name="dbContext">The database context for code operations.</param>
     /// <param name="resend">The email service client.</param>
     /// <param name="input">The input parameters for code generation.</param>
-    /// <returns><c>true</c> if code creation and email sending were successful.</returns>
+    /// <returns>true if code creation and email sending were successful.</returns>
     /// <exception cref="MutationException">
     /// Thrown when code already exists, user ID is invalid, or purpose is invalid.
     /// </exception>
@@ -198,7 +198,7 @@ public class Mutation
     /// <summary>
     /// Generates a secure temporary code using cryptographic random number generation.
     /// </summary>
-    /// <returns>A base64-encoded random string of length <c>TempCodeLength</c>.</returns>
+    /// <returns>A base64-encoded random string of length TempCodeLength.</returns>
     private static string GenerateTempCode()
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(TempCodeLength))[
@@ -249,7 +249,7 @@ public class Mutation
     /// </summary>
     /// <param name="dbContext">The database context for user operations.</param>
     /// <param name="input">The registration input parameters.</param>
-    /// <param name="existingUser">Existing user record if found, <c>null</c> otherwise.</param>
+    /// <param name="existingUser">Existing user record if found, null otherwise.</param>
     /// <returns>The newly created user.</returns>
     /// <exception cref="MutationException">
     /// Thrown when user already exists or creation fails.
@@ -267,7 +267,7 @@ public class Mutation
 
         var newUser = new Models.User
         {
-            Id = Models.User.GenerateId(),
+            Id = await Models.User.GenerateIdAsync(dbContext),
             Email = input.Email,
             IsEmailVerified = false,
             HashedPassword = Models.User.HashPassword(input.Password),

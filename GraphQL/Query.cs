@@ -14,7 +14,7 @@ public class Query
     /// <param name="dbContext">The database context for accessing user data.</param>
     /// <param name="sessionId">The session ID used to identify the user.</param>
     /// <returns>
-    /// An <see cref="IQueryable"/> of <see cref="Models.User"/> or <c>null</c> if no user is found for the given session ID.
+    /// An <see cref="IQueryable"/> of <see cref="Models.User"/> or null if no user is found for the given session ID.
     /// The queryable allows for additional filtering and projection at the GraphQL level.
     /// </returns>
     [UseProjection]
@@ -40,7 +40,7 @@ public class Query
     /// <param name="dbContext">The database context for accessing session data.</param>
     /// <param name="sessionId">The session ID used to identify the user.</param>
     /// <returns>
-    /// An <see cref="IQueryable"/> of <see cref="Models.Session"/> or <c>null</c> if no user is found for the given session ID.
+    /// An <see cref="IQueryable"/> of <see cref="Models.Session"/> or null if no user is found for the given session ID.
     /// The result supports paging, filtering, and projection at the GraphQL level.
     /// </returns>
     [UsePaging]
@@ -68,7 +68,7 @@ public class Query
     /// <param name="dbContext">The database context for accessing user data.</param>
     /// <param name="email">The email address to check for existence.</param>
     /// <returns>
-    /// A <c>Task</c> that resolves to <c>true</c> if a user with the email exists, <c>false</c> otherwise.
+    /// A Task that resolves to true if a user with the email exists, false otherwise.
     /// </returns>
     public Task<bool> DoesUserExist([Service] Contexts.AppDbContext dbContext, string email)
     {
