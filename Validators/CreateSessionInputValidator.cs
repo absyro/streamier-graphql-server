@@ -27,8 +27,8 @@ public sealed class CreateSessionInputValidator : AbstractValidator<Mutation.Cre
             .WithMessage("Email is required.")
             .EmailAddress()
             .WithMessage("Invalid email format.")
-            .MaximumLength(254)
-            .WithMessage("Email cannot exceed 254 characters.");
+            .MaximumLength(320)
+            .WithMessage("Email cannot exceed 320 characters.");
 
         RuleFor(input => input.Password)
             .NotEmpty()
