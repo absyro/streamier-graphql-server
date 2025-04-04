@@ -57,13 +57,6 @@ public sealed class CreateSessionInputValidator : AbstractValidator<Mutation.Cre
     /// </returns>
     private static bool BeAStrongPassword(string password)
     {
-        if (string.IsNullOrWhiteSpace(password))
-        {
-            return false;
-        }
-
-        var result = Core.EvaluatePassword(password);
-
-        return result.Score >= MinimumPasswordScore;
+        return Core.EvaluatePassword(password).Score >= MinimumPasswordScore;
     }
 }

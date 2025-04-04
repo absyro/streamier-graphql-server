@@ -2,6 +2,9 @@ namespace StreamierServer;
 
 using StreamierServer.Configuration;
 
+// TODO: User ID Should be unique and 16 chars
+// TODO: Use varchar
+
 /// <summary>
 /// The main entry point for the application. Configures and runs the web server.
 /// </summary>

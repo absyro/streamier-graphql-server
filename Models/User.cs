@@ -1,7 +1,9 @@
 namespace StreamierServer.Models;
 
 using System.ComponentModel.DataAnnotations;
-using Snowflake.Net;
+using Microsoft.EntityFrameworkCore;
+using RandomString4Net;
+using StreamierServer.Contexts;
 
 /// <summary>
 /// Represents a user account in the system with authentication capabilities.
@@ -12,8 +14,6 @@ using Snowflake.Net;
 /// </remarks>
 public class User : Base.BaseEntity
 {
-    private static readonly IdWorker _idWorker = new(1, 1);
-
     /// <summary>
     /// The user's email address used for authentication and communication.
     /// </summary>
@@ -47,19 +47,26 @@ public class User : Base.BaseEntity
     public required string HashedPassword { get; set; }
 
     /// <summary>
-    /// Generates a unique identifier using the <see cref="Snowflake"/> algorithm.
+    /// Generates a unique identifier for the user.
     /// </summary>
+    /// <param name="dbContext">The database context to check for uniqueness against.</param>
     /// <returns>
-    /// A string representation of a 64-bit unique ID that is time-ordered,
-    /// ensuring chronological sorting of records.
+    /// A string representing a unique identifier for the user.
     /// </returns>
     /// <remarks>
-    /// This method uses <see cref="IdWorker"/> to generate
-    /// distributed unique identifiers that are roughly time-sortable.
+    /// Uses cryptographically secure random generation to create 8-character
+    /// lowercase alphanumeric IDs, verifying uniqueness against the database.
     /// </remarks>
-    public static string GenerateId()
+    public static async Task<string> GenerateId(AppDbContext dbContext)
     {
-        return _idWorker.NextId().ToString();
+        string id;
+
+        do
+        {
+            id = RandomString.GetString(Types.ALPHANUMERIC_LOWERCASE, 8);
+        } while (await dbContext.Users.AnyAsync(u => u.Id == id));
+
+        return id;
     }
 
     /// <summary>
@@ -76,14 +83,6 @@ public class User : Base.BaseEntity
     /// </remarks>
     public static string HashPassword(string password)
     {
-        if (string.IsNullOrWhiteSpace(password))
-        {
-            throw new ArgumentException(
-                "Password cannot be empty or whitespace.",
-                nameof(password)
-            );
-        }
-
         return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
     }
 
@@ -99,27 +98,8 @@ public class User : Base.BaseEntity
     /// This method uses bcrypt's constant-time comparison to prevent
     /// timing attacks during password verification.
     /// </remarks>
-    /// <exception cref="ArgumentException">
-    /// Thrown if either parameter is <c>null</c> or empty.
-    /// </exception>
     public static bool ValidatePassword(string password, string hashedPassword)
     {
-        if (string.IsNullOrWhiteSpace(password))
-        {
-            throw new ArgumentException(
-                "Password cannot be empty or whitespace.",
-                nameof(password)
-            );
-        }
-
-        if (string.IsNullOrWhiteSpace(hashedPassword))
-        {
-            throw new ArgumentException(
-                "Hashed password cannot be empty or whitespace.",
-                nameof(hashedPassword)
-            );
-        }
-
         return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
     }
 }
