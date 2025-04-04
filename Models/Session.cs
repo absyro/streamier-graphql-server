@@ -20,6 +20,7 @@ public class Session : Base.BaseEntity
     /// A string representing the user's unique ID. This field is required.
     /// </value>
     [Required]
+    [StringLength(8)]
     public required string UserId { get; set; }
 
     /// <summary>

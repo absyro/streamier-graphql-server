@@ -19,6 +19,7 @@ public abstract class BaseEntity
     /// This field is required.
     /// </value>
     [Key]
+    [StringLength(128)]
     public required string Id { get; set; }
 
     /// <summary>

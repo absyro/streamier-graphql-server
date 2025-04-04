@@ -23,6 +23,7 @@ public class User : Base.BaseEntity
     /// </value>
     [Required]
     [EmailAddress]
+    [StringLength(320)]
     public required string Email { get; set; }
 
     /// <summary>
@@ -44,6 +45,7 @@ public class User : Base.BaseEntity
     /// </value>
     [GraphQLIgnore]
     [Required]
+    [StringLength(256)]
     public required string HashedPassword { get; set; }
 
     /// <summary>

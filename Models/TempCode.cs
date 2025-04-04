@@ -32,6 +32,7 @@ public class TempCode : Base.BaseEntity
     /// This field is required.
     /// </value>
     [Required]
+    [StringLength(128)]
     public required string ForId { get; set; }
 
     /// <summary>
@@ -43,6 +44,7 @@ public class TempCode : Base.BaseEntity
     /// </value>
     [GraphQLIgnore]
     [Required]
+    [StringLength(256)]
     public required string HashedCode { get; set; }
 
     /// <summary>
@@ -54,6 +56,7 @@ public class TempCode : Base.BaseEntity
     /// </value>
     [GraphQLIgnore]
     [Required]
+    [StringLength(16)]
     public required string CodeSalt { get; set; }
 
     /// <summary>
