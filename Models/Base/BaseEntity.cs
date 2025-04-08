@@ -1,4 +1,4 @@
-namespace StreamierServer.Models.Base;
+namespace StreamierGraphQLServer.Models.Base;
 
 using System.ComponentModel.DataAnnotations;
 

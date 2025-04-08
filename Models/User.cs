@@ -1,9 +1,9 @@
-namespace StreamierServer.Models;
+namespace StreamierGraphQLServer.Models;
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using RandomString4Net;
-using StreamierServer.Contexts;
+using StreamierGraphQLServer.Contexts;
 
 /// <summary>
 /// Represents a user account in the system with authentication capabilities.

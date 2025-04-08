@@ -1,4 +1,4 @@
-namespace StreamierServer.GraphQL;
+namespace StreamierGraphQLServer.GraphQL;
 
 using System.Security.Cryptography;
 using FluentValidation;

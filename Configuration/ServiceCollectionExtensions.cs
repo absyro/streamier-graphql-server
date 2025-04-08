@@ -1,4 +1,4 @@
-namespace StreamierServer.Configuration;
+namespace StreamierGraphQLServer.Configuration;
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.RateLimiting;

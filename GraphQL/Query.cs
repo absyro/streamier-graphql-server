@@ -1,4 +1,4 @@
-namespace StreamierServer.GraphQL;
+namespace StreamierGraphQLServer.GraphQL;
 
 using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;

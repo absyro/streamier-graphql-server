@@ -1,6 +1,6 @@
-namespace StreamierServer;
+namespace StreamierGraphQLServer;
 
-using StreamierServer.Configuration;
+using StreamierGraphQLServer.Configuration;
 
 /// <summary>
 /// The main entry point for the application. Configures and runs the web server.

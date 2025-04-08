@@ -1,6 +1,6 @@
-# Contributing to Streamier Server
+# Contributing to Streamier GraphQL Server
 
-Thank you for considering contributing to Streamier Server! We appreciate your help in improving the project.
+Thank you for considering contributing to Streamier GraphQL Server! We appreciate your help in improving the project.
 
 ## How to Contribute
 

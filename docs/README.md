@@ -1,6 +1,6 @@
-# Streamier Server
+# Streamier GraphQL Server
 
-The Streamier Server is the main backend powering [Streamier](https://streamier.net). This repository contains the server code that interacts with Streamier's PostgreSQL database using **GraphQL**.
+The Streamier GraphQL Server is the main backend powering Streamier. This repository contains the server code that interacts with Streamier's PostgreSQL database using **GraphQL**.
 
 ## Project Priorities
 

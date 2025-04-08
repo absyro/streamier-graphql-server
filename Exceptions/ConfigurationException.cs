@@ -1,4 +1,4 @@
-namespace StreamierServer.Exceptions;
+namespace StreamierGraphQLServer.Exceptions;
 
 /// <summary>
 /// Exception thrown when there is an error related to application configuration.

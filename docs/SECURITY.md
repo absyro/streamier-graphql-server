@@ -2,7 +2,7 @@
 
 ## Reporting Vulnerabilities
 
-If you discover a security issue in Streamier Server, please **DO NOT** create a public issue. Instead, report it privately to **security@streamier.net**.
+If you discover a security issue in Streamier GraphQL Server, please **DO NOT** create a public issue. Instead, report it privately to **security@streamier.net**.
 
 ### Guidelines:
 

@@ -1,7 +1,7 @@
-namespace StreamierServer.Validators;
+namespace StreamierGraphQLServer.Validators;
 
 using FluentValidation;
-using StreamierServer.GraphQL;
+using StreamierGraphQLServer.GraphQL;
 using Zxcvbn;
 
 /// <summary>

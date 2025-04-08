@@ -1,4 +1,4 @@
-namespace StreamierServer.Models;
+namespace StreamierGraphQLServer.Models;
 
 using System.ComponentModel.DataAnnotations;
 using RandomString4Net;

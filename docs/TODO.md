@@ -1,28 +1,34 @@
-### Enable Two-Step Verification (2FA) for User Accounts**
+# TODO
 
-- **2FA Flow**:
-  - Implement two-step verification (2FA) for accounts that have enabled this feature.
-  - The 2FA process will be handled via email.
-  - If 2FA is enabled, send a verification code to the user's email and return a **boolean** indicating success.
-  - After the user receives the verification code, they must enter it in the request to proceed.
-  - Extend the existing login mutation to accept a **login code** parameter to complete the authentication process.
+### 🔐 Two-Step Verification (2FA) for User Accounts
 
-- **Integration with Temporary Codes**:
-  - Implement flexibility by integrating this feature with **Temporary Codes**, ensuring temporary authentication codes work seamlessly.
+- [ ] Implement email-based 2FA for user accounts.
+- [ ] Send verification code via email when 2FA is enabled.
+- [ ] Return a **boolean** indicating success of email send.
+- [ ] Extend login mutation to accept `loginCode` (the verification code).
+- [ ] Validate user-submitted 2FA code before completing login.
+- [ ] Integrate with **Temporary Codes** to ensure seamless behavior with existing temporary login flows.
 
-### Automatic Expiration of Documents
+### 📄 Automatic Expiration of Documents
 
-- Set up an automated process to invalidate documents once their expiration date has passed.
-- Ensure expired documents are not accessible or included in queries.
+- [ ] Set up a background job or scheduler to detect expired documents.
+- [ ] Invalidate and restrict access to expired documents.
+- [ ] Exclude expired documents from database queries and API responses.
 
-### Automate Updates for Entities
+### 🔄 Automate Entity Updates
 
-- Use database triggers to automate entity updates.
+- [ ] Use database triggers or background processes to handle automatic updates on specific entity changes.
 
-### Implement Unit Testing
+### 🧪 Unit Testing
 
-- Write and integrate unit tests to ensure proper functionality across all features.
+- [ ] Write unit tests for 2FA functionality.
+- [ ] Add tests for document expiration logic.
+- [ ] Include tests for automated entity updates.
+- [ ] Set up test coverage tracking.
 
-### Create Documentation
+### 📚 Documentation
 
-- Develop comprehensive documentation for system features, setup, and usage.
+- [ ] Document 2FA setup, flow, and integration details.
+- [ ] Add instructions for managing document expiration.
+- [ ] Explain database automation and triggers used.
+- [ ] Provide setup and usage guidelines for contributors.
