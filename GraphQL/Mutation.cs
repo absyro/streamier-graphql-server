@@ -78,6 +78,22 @@ public class Mutation
             throw new MutationException("The provided password is incorrect.");
         }
 
+        var now = DateTime.UtcNow;
+        var minExpiration = now.AddHours(1);
+        var maxExpiration = now.AddDays(365);
+
+        if (input.ExpirationDate < minExpiration)
+        {
+            throw new MutationException("Expiration date must be at least 1 hour in the future.");
+        }
+
+        if (input.ExpirationDate > maxExpiration)
+        {
+            throw new MutationException(
+                "Expiration date cannot be more than 365 days in the future."
+            );
+        }
+
         var userSessionsCount = await dbContext.Sessions.CountAsync(s => s.UserId == user.Id);
         if (userSessionsCount >= MaxSessionsPerUser)
         {
@@ -90,7 +106,7 @@ public class Mutation
         {
             Id = Session.GenerateSessionId(),
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(input.ExpirationDays),
+            ExpiresAt = input.ExpirationDate,
         };
 
         dbContext.Sessions.Add(session);

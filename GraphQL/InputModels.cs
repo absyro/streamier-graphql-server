@@ -31,8 +31,8 @@ public class SignInInput
     [Required]
     public required string Password { get; set; }
 
-    [Range(1, 365)]
-    public int ExpirationDays { get; set; } = 30;
+    [Required]
+    public required DateTime ExpirationDate { get; set; }
 }
 
 public record DeleteSessionInput([Required] string SessionId);
