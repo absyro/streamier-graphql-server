@@ -9,18 +9,6 @@ using StreamierGraphQLServer.Models.Base;
 public class UserPreferences : BaseEntity
 {
     /// <summary>
-    /// Whether to receive marketing emails from the platform.
-    /// </summary>
-    [Required]
-    public bool MarketingEmails { get; set; } = false;
-
-    /// <summary>
-    /// Whether to receive promotional emails from partners.
-    /// </summary>
-    [Required]
-    public bool PartnerPromotions { get; set; } = false;
-
-    /// <summary>
     /// Whether to allow push notifications.
     /// </summary>
     [Required]
