@@ -18,7 +18,6 @@
 ### 🔄 Automate Entity Updates
 
 - [ ] Use database triggers or background processes to handle automatic updates on specific entity changes.
-- [ ] Define relationships between database models.
 
 ### 🧪 Unit Testing
 
