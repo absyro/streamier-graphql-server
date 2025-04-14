@@ -1,11 +1,12 @@
 namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
+using StreamierGraphQLServer.Models.Base;
 
 /// <summary>
 /// User notification and communication preferences.
 /// </summary>
-public class UserPreferences
+public class UserPreferences : BaseEntity
 {
     /// <summary>
     /// Whether to receive marketing emails from the platform.

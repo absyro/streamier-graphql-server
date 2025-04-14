@@ -1,11 +1,12 @@
 namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
+using StreamierGraphQLServer.Models.Base;
 
 /// <summary>
 /// User privacy and visibility settings with comprehensive controls.
 /// </summary>
-public class UserPrivacySettings
+public class UserPrivacySettings : BaseEntity
 {
     /// <summary>
     /// Who can view the user's profile.

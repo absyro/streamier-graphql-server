@@ -2,7 +2,6 @@ namespace StreamierGraphQLServer.Configuration;
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.RateLimiting;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Resend;
 
@@ -37,7 +36,6 @@ public static class ServiceCollectionExtensions
         services.AddHttpServices(configuration);
         services.AddHealthChecks();
         services.AddRateLimiting();
-        services.AddValidators();
         services.AddCorsPolicy();
         services.AddDatabaseContext(configuration);
         services.AddGraphQlServer();
@@ -118,23 +116,6 @@ public static class ServiceCollectionExtensions
                 }
             };
         });
-
-        return services;
-    }
-
-    /// <summary>
-    /// Registers FluentValidation validators and other validation-related services.
-    /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
-    /// <returns>The configured <see cref="IServiceCollection"/>.</returns>
-    private static IServiceCollection AddValidators(this IServiceCollection services)
-    {
-        services.AddScoped<
-            IValidator<GraphQL.Mutation.CreateSessionInput>,
-            Validators.CreateSessionInputValidator
-        >();
-
-        services.AddTransient<IResend, ResendClient>();
 
         return services;
     }

@@ -1,7 +1,7 @@
 namespace StreamierGraphQLServer.GraphQL;
 
+using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Resend;
 using StreamierGraphQLServer.Models;
@@ -13,7 +13,6 @@ using StreamierGraphQLServer.Models.Users;
 public class Mutation
 {
     private const int MaxSessionsPerUser = 20;
-
     private const int TempCodeExpirationHours = 2;
     private const int TempCodeLength = 16;
 
@@ -25,67 +24,66 @@ public class Mutation
     public class MutationException(string message) : Exception(message);
 
     /// <summary>
-    /// Input type for creating a new user session.
+    /// Creates a new user account.
     /// </summary>
-    /// <param name="Email">The user's email address for authentication.</param>
-    /// <param name="Password">The user's password for authentication.</param>
-    /// <param name="Mode">The operation mode (SignUp or SignIn). Defaults to SignIn.</param>
-    /// <param name="ExpirationDays">Session expiration period in days. Defaults to 30.</param>
-    public record CreateSessionInput(
-        string Email,
-        string Password,
-        CreateSessionMode Mode = CreateSessionMode.SignIn,
-        int ExpirationDays = 30
-    );
-
-    /// <summary>
-    /// Defines the possible modes for session creation.
-    /// </summary>
-    public enum CreateSessionMode
+    /// <param name="dbContext">The database context for user operations.</param>
+    /// <param name="input">The user registration details.</param>
+    /// <returns>The newly created user.</returns>
+    [Error(typeof(MutationException))]
+    public async Task<User> SignUp([Service] Contexts.AppDbContext dbContext, SignUpInput input)
     {
-        /// <summary>
-        /// Creates a new user account and establishes a session.
-        /// </summary>
-        SignUp,
+        ValidateInput(input);
 
-        /// <summary>
-        /// Authenticates an existing user and establishes a session.
-        /// </summary>
-        SignIn,
+        if (await dbContext.Users.AnyAsync(u => u.Email == input.Email))
+        {
+            throw new MutationException("A user with the provided email address already exists.");
+        }
+
+        var userId = await User.GenerateIdAsync(dbContext);
+
+        var newUser = new User
+        {
+            Id = userId,
+            Email = input.Email,
+            IsEmailVerified = false,
+            HashedPassword = User.HashPassword(input.Password),
+            Username = input.Username,
+            PrivacySettings = new UserPrivacySettings() { Id = userId },
+            Preferences = new UserPreferences() { Id = userId },
+        };
+
+        dbContext.Users.Add(newUser);
+        await dbContext.SaveChangesAsync();
+
+        return newUser;
     }
 
     /// <summary>
-    /// Creates a new authentication session for a user.
-    /// Handles both new user registration (SignUp) and existing user authentication (SignIn).
+    /// Creates a new authentication session for an existing user.
     /// </summary>
-    /// <param name="dbContext">The database context for accessing user data.</param>
-    /// <param name="validator">The validator for input validation.</param>
-    /// <param name="input">The input parameters containing authentication details.</param>
-    /// <returns>The newly created session object.</returns>
-    /// <exception cref="MutationException">
-    /// Thrown when input validation fails, authentication fails, or user creation fails.
-    /// </exception>
+    /// <param name="dbContext">The database context for user operations.</param>
+    /// <param name="input">The authentication details.</param>
+    /// <returns>The newly created session.</returns>
     [Error(typeof(MutationException))]
-    public async Task<Session> CreateSession(
-        [Service] Contexts.AppDbContext dbContext,
-        [Service] IValidator<CreateSessionInput> validator,
-        CreateSessionInput input
-    )
+    public async Task<Session> SignIn([Service] Contexts.AppDbContext dbContext, SignInInput input)
     {
-        await validator.ValidateAndThrowAsync(input);
+        ValidateInput(input);
 
-        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == input.Email);
+        var user =
+            await dbContext.Users.FirstOrDefaultAsync(u => u.Email == input.Email)
+            ?? throw new MutationException("A user with the provided email address was not found.");
 
-        user = input.Mode switch
+        if (!User.ValidatePassword(input.Password, user.HashedPassword))
         {
-            CreateSessionMode.SignUp => await HandleSignUp(dbContext, input, user),
-            CreateSessionMode.SignIn => await HandleSignIn(dbContext, input, user),
-            _ => throw new MutationException("Invalid session mode."),
-        };
+            throw new MutationException("The provided password is incorrect.");
+        }
 
-        if (user is null)
+        var userSessionsCount = await dbContext.Sessions.CountAsync(s => s.UserId == user.Id);
+        if (userSessionsCount >= MaxSessionsPerUser)
         {
-            throw new MutationException("Failed to find or create user.");
+            throw new MutationException(
+                $"The maximum number of sessions ({MaxSessionsPerUser}) for this user has been reached."
+            );
         }
 
         var session = new Session
@@ -96,17 +94,10 @@ public class Mutation
         };
 
         dbContext.Sessions.Add(session);
-
         await dbContext.SaveChangesAsync();
 
         return session;
     }
-
-    /// <summary>
-    /// Input type for deleting a session.
-    /// </summary>
-    /// <param name="SessionId">The ID of the session to be deleted.</param>
-    public record DeleteSessionInput(string SessionId);
 
     /// <summary>
     /// Deletes an existing session by its ID.
@@ -114,9 +105,6 @@ public class Mutation
     /// <param name="dbContext">The database context for session operations.</param>
     /// <param name="input">The input containing the session ID to delete.</param>
     /// <returns>true if deletion was successful.</returns>
-    /// <exception cref="MutationException">
-    /// Thrown when the session ID is invalid or deletion fails.
-    /// </exception>
     [Error(typeof(MutationException))]
     public async Task<bool> DeleteSession(
         [Service] Contexts.AppDbContext dbContext,
@@ -128,30 +116,14 @@ public class Mutation
             ?? throw new MutationException("Invalid session ID.");
 
         dbContext.Sessions.Remove(session);
-
         await dbContext.SaveChangesAsync();
 
         return true;
     }
 
     /// <summary>
-    /// Input type for creating a temporary code.
-    /// </summary>
-    /// <param name="Purpose">The purpose of the temporary code.</param>
-    /// <param name="ForId">The user ID associated with the temporary code.</param>
-    public record CreateTempCodeForIdInput(TempCode.TempCodePurpose Purpose, string ForId);
-
-    /// <summary>
     /// Creates a temporary code for a specific purpose and user ID.
-    /// Generates a secure code, stores its hashed version, and sends via email.
     /// </summary>
-    /// <param name="dbContext">The database context for code operations.</param>
-    /// <param name="resend">The email service client.</param>
-    /// <param name="input">The input parameters for code generation.</param>
-    /// <returns>true if code creation and email sending were successful.</returns>
-    /// <exception cref="MutationException">
-    /// Thrown when code already exists, user ID is invalid, or purpose is invalid.
-    /// </exception>
     [Error(typeof(MutationException))]
     public async Task<bool> CreateTempCodeForId(
         [Service] Contexts.AppDbContext dbContext,
@@ -171,9 +143,7 @@ public class Mutation
         }
 
         var code = GenerateTempCode();
-
         var codeSalt = TempCode.GenerateCodeSalt();
-
         var hashedCode = TempCode.HashCode(code, codeSalt);
 
         var message = await CreateEmailMessage(dbContext, input);
@@ -191,32 +161,14 @@ public class Mutation
         );
 
         await dbContext.SaveChangesAsync();
-
         await resend.EmailSendAsync(message);
 
         return true;
     }
 
-    /// <summary>
-    /// Generates a secure temporary code using cryptographic random number generation.
-    /// </summary>
-    /// <returns>A base64-encoded random string of length TempCodeLength.</returns>
-    private static string GenerateTempCode()
-    {
-        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(TempCodeLength))[
-            ..TempCodeLength
-        ];
-    }
+    private static string GenerateTempCode() =>
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(TempCodeLength))[..TempCodeLength];
 
-    /// <summary>
-    /// Creates an email message for temporary code delivery.
-    /// </summary>
-    /// <param name="dbContext">The database context for user lookup.</param>
-    /// <param name="input">The input parameters containing code purpose and user ID.</param>
-    /// <returns>An <see cref="EmailMessage"/> configured for the specific code purpose.</returns>
-    /// <exception cref="MutationException">
-    /// Thrown when user ID is invalid or purpose is invalid.
-    /// </exception>
     private static async Task<EmailMessage> CreateEmailMessage(
         Contexts.AppDbContext dbContext,
         CreateTempCodeForIdInput input
@@ -246,77 +198,15 @@ public class Mutation
         };
     }
 
-    /// <summary>
-    /// Handles new user registration process.
-    /// </summary>
-    /// <param name="dbContext">The database context for user operations.</param>
-    /// <param name="input">The registration input parameters.</param>
-    /// <param name="existingUser">Existing user record if found, null otherwise.</param>
-    /// <returns>The newly created user.</returns>
-    /// <exception cref="MutationException">
-    /// Thrown when user already exists or creation fails.
-    /// </exception>
-    private static async Task<User> HandleSignUp(
-        Contexts.AppDbContext dbContext,
-        CreateSessionInput input,
-        User? existingUser
-    )
+    private static void ValidateInput(object input)
     {
-        if (existingUser != null)
-        {
-            throw new MutationException("A user with the provided email address already exists.");
-        }
-
-        var newUser = new User
-        {
-            Id = await User.GenerateIdAsync(dbContext),
-            Email = input.Email,
-            IsEmailVerified = false,
-            HashedPassword = User.HashPassword(input.Password),
-        };
-
-        dbContext.Users.Add(newUser);
-
-        await dbContext.SaveChangesAsync();
-
-        return newUser;
-    }
-
-    /// <summary>
-    /// Handles existing user authentication process.
-    /// </summary>
-    /// <param name="dbContext">The database context for user operations.</param>
-    /// <param name="input">The authentication input parameters.</param>
-    /// <param name="user">The existing user record if found.</param>
-    /// <returns>The authenticated user.</returns>
-    /// <exception cref="MutationException">
-    /// Thrown when user doesn't exist, password is invalid, or session limit reached.
-    /// </exception>
-    private static async Task<User> HandleSignIn(
-        Contexts.AppDbContext dbContext,
-        CreateSessionInput input,
-        User? user
-    )
-    {
-        if (user is null)
-        {
-            throw new MutationException("A user with the provided email address was not found.");
-        }
-
-        var userSessionsCount = await dbContext.Sessions.CountAsync(s => s.UserId == user.Id);
-
-        if (userSessionsCount >= MaxSessionsPerUser)
+        var validationContext = new ValidationContext(input);
+        var validationResults = new List<ValidationResult>();
+        if (!Validator.TryValidateObject(input, validationContext, validationResults, true))
         {
             throw new MutationException(
-                $"The maximum number of sessions ({MaxSessionsPerUser}) for this user has been reached."
+                string.Join(" ", validationResults.Select(r => r.ErrorMessage))
             );
         }
-
-        if (!User.ValidatePassword(input.Password, user.HashedPassword))
-        {
-            throw new MutationException("The provided password is incorrect.");
-        }
-
-        return user;
     }
 }
