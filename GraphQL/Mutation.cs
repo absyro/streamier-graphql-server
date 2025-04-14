@@ -4,6 +4,8 @@ using System.Security.Cryptography;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Resend;
+using StreamierGraphQLServer.Models;
+using StreamierGraphQLServer.Models.Users;
 
 /// <summary>
 /// Represents the root GraphQL mutation type containing all available mutation operations.
@@ -64,7 +66,7 @@ public class Mutation
     /// Thrown when input validation fails, authentication fails, or user creation fails.
     /// </exception>
     [Error(typeof(MutationException))]
-    public async Task<Models.Session> CreateSession(
+    public async Task<Session> CreateSession(
         [Service] Contexts.AppDbContext dbContext,
         [Service] IValidator<CreateSessionInput> validator,
         CreateSessionInput input
@@ -86,9 +88,9 @@ public class Mutation
             throw new MutationException("Failed to find or create user.");
         }
 
-        var session = new Models.Session
+        var session = new Session
         {
-            Id = Models.Session.GenerateSessionId(),
+            Id = Session.GenerateSessionId(),
             UserId = user.Id,
             ExpiresAt = DateTime.UtcNow.AddDays(input.ExpirationDays),
         };
@@ -137,7 +139,7 @@ public class Mutation
     /// </summary>
     /// <param name="Purpose">The purpose of the temporary code.</param>
     /// <param name="ForId">The user ID associated with the temporary code.</param>
-    public record CreateTempCodeForIdInput(Models.TempCode.TempCodePurpose Purpose, string ForId);
+    public record CreateTempCodeForIdInput(TempCode.TempCodePurpose Purpose, string ForId);
 
     /// <summary>
     /// Creates a temporary code for a specific purpose and user ID.
@@ -170,16 +172,16 @@ public class Mutation
 
         var code = GenerateTempCode();
 
-        var codeSalt = Models.TempCode.GenerateCodeSalt();
+        var codeSalt = TempCode.GenerateCodeSalt();
 
-        var hashedCode = Models.TempCode.HashCode(code, codeSalt);
+        var hashedCode = TempCode.HashCode(code, codeSalt);
 
         var message = await CreateEmailMessage(dbContext, input);
 
         dbContext.TempCodes.Add(
-            new Models.TempCode
+            new TempCode
             {
-                Id = Models.TempCode.GenerateCode(),
+                Id = TempCode.GenerateCode(),
                 Purpose = input.Purpose,
                 ForId = input.ForId,
                 HashedCode = hashedCode,
@@ -228,10 +230,10 @@ public class Mutation
 
         var subject = input.Purpose switch
         {
-            Models.TempCode.TempCodePurpose.ChangePassword => "Change Password",
-            Models.TempCode.TempCodePurpose.ChangeEmail => "Change Email",
-            Models.TempCode.TempCodePurpose.EmailVerification => "Email Verification",
-            Models.TempCode.TempCodePurpose.DeleteAccount => "Removing Account",
+            TempCode.TempCodePurpose.ChangePassword => "Change Password",
+            TempCode.TempCodePurpose.ChangeEmail => "Change Email",
+            TempCode.TempCodePurpose.EmailVerification => "Email Verification",
+            TempCode.TempCodePurpose.DeleteAccount => "Removing Account",
             _ => throw new MutationException("Invalid purpose."),
         };
 
@@ -254,10 +256,10 @@ public class Mutation
     /// <exception cref="MutationException">
     /// Thrown when user already exists or creation fails.
     /// </exception>
-    private static async Task<Models.User> HandleSignUp(
+    private static async Task<User> HandleSignUp(
         Contexts.AppDbContext dbContext,
         CreateSessionInput input,
-        Models.User? existingUser
+        User? existingUser
     )
     {
         if (existingUser != null)
@@ -265,12 +267,12 @@ public class Mutation
             throw new MutationException("A user with the provided email address already exists.");
         }
 
-        var newUser = new Models.User
+        var newUser = new User
         {
-            Id = await Models.User.GenerateIdAsync(dbContext),
+            Id = await User.GenerateIdAsync(dbContext),
             Email = input.Email,
             IsEmailVerified = false,
-            HashedPassword = Models.User.HashPassword(input.Password),
+            HashedPassword = User.HashPassword(input.Password),
         };
 
         dbContext.Users.Add(newUser);
@@ -290,10 +292,10 @@ public class Mutation
     /// <exception cref="MutationException">
     /// Thrown when user doesn't exist, password is invalid, or session limit reached.
     /// </exception>
-    private static async Task<Models.User> HandleSignIn(
+    private static async Task<User> HandleSignIn(
         Contexts.AppDbContext dbContext,
         CreateSessionInput input,
-        Models.User? user
+        User? user
     )
     {
         if (user is null)
@@ -310,7 +312,7 @@ public class Mutation
             );
         }
 
-        if (!Models.User.ValidatePassword(input.Password, user.HashedPassword))
+        if (!User.ValidatePassword(input.Password, user.HashedPassword))
         {
             throw new MutationException("The provided password is incorrect.");
         }

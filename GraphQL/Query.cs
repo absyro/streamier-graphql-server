@@ -2,6 +2,8 @@ namespace StreamierGraphQLServer.GraphQL;
 
 using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
+using StreamierGraphQLServer.Models;
+using StreamierGraphQLServer.Models.Users;
 
 /// <summary>
 /// Represents the root GraphQL query type containing all available query operations.
@@ -14,15 +16,12 @@ public class Query
     /// <param name="dbContext">The database context for accessing user data.</param>
     /// <param name="sessionId">The session ID used to identify the user.</param>
     /// <returns>
-    /// An <see cref="IQueryable"/> of <see cref="Models.User"/> or null if no user is found for the given session ID.
+    /// An <see cref="IQueryable"/> of <see cref="User"/> or null if no user is found for the given session ID.
     /// The queryable allows for additional filtering and projection at the GraphQL level.
     /// </returns>
     [UseProjection]
     [UseFirstOrDefault]
-    public IQueryable<Models.User>? GetUser(
-        [Service] Contexts.AppDbContext dbContext,
-        string sessionId
-    )
+    public IQueryable<User>? GetUser([Service] Contexts.AppDbContext dbContext, string sessionId)
     {
         var userId = dbContext
             .Sessions.AsNoTracking()
@@ -40,13 +39,13 @@ public class Query
     /// <param name="dbContext">The database context for accessing session data.</param>
     /// <param name="sessionId">The session ID used to identify the user.</param>
     /// <returns>
-    /// An <see cref="IQueryable"/> of <see cref="Models.Session"/> or null if no user is found for the given session ID.
+    /// An <see cref="IQueryable"/> of <see cref="Session"/> or null if no user is found for the given session ID.
     /// The result supports paging, filtering, and projection at the GraphQL level.
     /// </returns>
     [UsePaging]
     [UseProjection]
     [UseFiltering]
-    public IQueryable<Models.Session>? GetUserSessions(
+    public IQueryable<Session>? GetUserSessions(
         [Service] Contexts.AppDbContext dbContext,
         string sessionId
     )

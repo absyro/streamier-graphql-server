@@ -1,4 +1,4 @@
-namespace StreamierGraphQLServer.Models;
+namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
@@ -6,11 +6,11 @@ using RandomString4Net;
 using StreamierGraphQLServer.Contexts;
 
 /// <summary>
-/// Represents a user account in the system with authentication capabilities.
+/// Represents a user account in the system with authentication capabilities and profile settings.
 /// </summary>
 /// <remarks>
-/// This entity stores sensitive user information including email and password hash,
-/// following security best practices for credential storage.
+/// This entity stores user information including authentication details, profile settings,
+/// and preferences, following security best practices for credential storage.
 /// </remarks>
 public class User : Base.BaseEntity
 {
@@ -25,6 +25,30 @@ public class User : Base.BaseEntity
     [EmailAddress]
     [StringLength(320)]
     public required string Email { get; set; }
+
+    /// <summary>
+    /// The user's unique username for public display.
+    /// </summary>
+    /// <value>
+    /// A unique alphanumeric string between 3-30 characters.
+    /// This field is required and validated for format and uniqueness.
+    /// </value>
+    [Required]
+    [StringLength(30, MinimumLength = 3)]
+    [RegularExpression(
+        @"^[a-zA-Z0-9_]+$",
+        ErrorMessage = "Username can only contain letters, numbers, and underscores."
+    )]
+    public required string Username { get; set; }
+
+    /// <summary>
+    /// A brief description about the user.
+    /// </summary>
+    /// <value>
+    /// A string with maximum length of 500 characters. Optional field.
+    /// </value>
+    [StringLength(500)]
+    public string? Bio { get; set; }
 
     /// <summary>
     /// A value indicating whether the user's email address has been verified.
@@ -47,6 +71,34 @@ public class User : Base.BaseEntity
     [Required]
     [StringLength(256)]
     public required string HashedPassword { get; set; }
+
+    /// <summary>
+    /// Collection of user activities and interactions.
+    /// </summary>
+    /// <value>
+    /// A list of activity objects representing user actions.
+    /// </value>
+    public List<UserActivity> Activities { get; set; } = [];
+
+    /// <summary>
+    /// User's privacy and visibility settings.
+    /// </summary>
+    [Required]
+    public required UserPrivacySettings PrivacySettings { get; set; }
+
+    /// <summary>
+    /// User's notification and communication preferences.
+    /// </summary>
+    [Required]
+    public required UserPreferences Preferences { get; set; }
+
+    /// <summary>
+    /// List of user IDs that this user follows.
+    /// </summary>
+    /// <value>
+    /// An array of strings representing the IDs of users being followed.
+    /// </value>
+    public List<string> Following { get; set; } = [];
 
     /// <summary>
     /// Generates a unique identifier for the user.
