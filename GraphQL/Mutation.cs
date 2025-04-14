@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Resend;
 using StreamierGraphQLServer.Exceptions;
+using StreamierGraphQLServer.Inputs;
 using StreamierGraphQLServer.Models;
 using StreamierGraphQLServer.Models.Users;
 using Zxcvbn;
