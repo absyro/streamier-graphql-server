@@ -21,17 +21,15 @@ public class Mutation
     /// <summary>
     /// Creates a new user account.
     /// </summary>
-    /// <param name="dbContext">The database context for user operations.</param>
-    /// <param name="input">The user registration details.</param>
-    /// <returns>The newly created user.</returns>
-    [Error(typeof(MutationException))]
+    [Error(typeof(UserAlreadyExistsException))]
+    [Error(typeof(ValidationFailedException))]
     public async Task<User> SignUp([Service] Contexts.AppDbContext dbContext, SignUpInput input)
     {
         ValidateInput(input);
 
         if (await dbContext.Users.AnyAsync(u => u.Email == input.Email))
         {
-            throw new MutationException("A user with the provided email address already exists.");
+            throw new UserAlreadyExistsException(input.Email);
         }
 
         var userId = await User.GenerateIdAsync(dbContext);
@@ -56,45 +54,37 @@ public class Mutation
     /// <summary>
     /// Creates a new authentication session for an existing user.
     /// </summary>
-    /// <param name="dbContext">The database context for user operations.</param>
-    /// <param name="input">The authentication details.</param>
-    /// <returns>The newly created session.</returns>
-    [Error(typeof(MutationException))]
+    [Error(typeof(UserNotFoundException))]
+    [Error(typeof(InvalidPasswordException))]
+    [Error(typeof(InvalidSessionExpirationException))]
+    [Error(typeof(MaxSessionsExceededException))]
+    [Error(typeof(ValidationFailedException))]
     public async Task<Session> SignIn([Service] Contexts.AppDbContext dbContext, SignInInput input)
     {
         ValidateInput(input);
 
         var user =
             await dbContext.Users.FirstOrDefaultAsync(u => u.Email == input.Email)
-            ?? throw new MutationException("A user with the provided email address was not found.");
+            ?? throw new UserNotFoundException(input.Email);
 
         if (!User.ValidatePassword(input.Password, user.HashedPassword))
         {
-            throw new MutationException("The provided password is incorrect.");
+            throw new InvalidPasswordException();
         }
 
         var now = DateTime.UtcNow;
         var minExpiration = now.AddHours(1);
         var maxExpiration = now.AddDays(365);
 
-        if (input.ExpirationDate < minExpiration)
+        if (input.ExpirationDate < minExpiration || input.ExpirationDate > maxExpiration)
         {
-            throw new MutationException("Expiration date must be at least 1 hour in the future.");
-        }
-
-        if (input.ExpirationDate > maxExpiration)
-        {
-            throw new MutationException(
-                "Expiration date cannot be more than 365 days in the future."
-            );
+            throw new InvalidSessionExpirationException(minExpiration, maxExpiration);
         }
 
         var userSessionsCount = await dbContext.Sessions.CountAsync(s => s.UserId == user.Id);
         if (userSessionsCount >= MaxSessionsPerUser)
         {
-            throw new MutationException(
-                $"The maximum number of sessions ({MaxSessionsPerUser}) for this user has been reached."
-            );
+            throw new MaxSessionsExceededException(MaxSessionsPerUser);
         }
 
         var session = new Session
@@ -113,10 +103,8 @@ public class Mutation
     /// <summary>
     /// Deletes an existing session by its ID.
     /// </summary>
-    /// <param name="dbContext">The database context for session operations.</param>
-    /// <param name="input">The input containing the session ID to delete.</param>
-    /// <returns>true if deletion was successful.</returns>
-    [Error(typeof(MutationException))]
+    [Error(typeof(InvalidSessionException))]
+    [Error(typeof(ValidationFailedException))]
     public async Task<bool> DeleteSession(
         [Service] Contexts.AppDbContext dbContext,
         DeleteSessionInput input
@@ -124,7 +112,7 @@ public class Mutation
     {
         var session =
             await dbContext.Sessions.FirstOrDefaultAsync(s => s.Id == input.SessionId)
-            ?? throw new MutationException("Invalid session ID.");
+            ?? throw new InvalidSessionException(input.SessionId);
 
         dbContext.Sessions.Remove(session);
         await dbContext.SaveChangesAsync();
@@ -135,7 +123,10 @@ public class Mutation
     /// <summary>
     /// Creates a temporary code for a specific purpose and user ID.
     /// </summary>
-    [Error(typeof(MutationException))]
+    [Error(typeof(TempCodeAlreadyExistsException))]
+    [Error(typeof(InvalidUserIdException))]
+    [Error(typeof(InvalidTempCodePurposeException))]
+    [Error(typeof(ValidationFailedException))]
     public async Task<bool> CreateTempCodeForId(
         [Service] Contexts.AppDbContext dbContext,
         [Service] IResend resend,
@@ -148,9 +139,7 @@ public class Mutation
             )
         )
         {
-            throw new MutationException(
-                "Same code with the same purpose has already been registered for the same ID."
-            );
+            throw new TempCodeAlreadyExistsException(input.Purpose.ToString(), input.ForId);
         }
 
         var code = GenerateTempCode();
@@ -189,7 +178,7 @@ public class Mutation
             await dbContext
                 .Users.Where(u => u.Id == input.ForId)
                 .Select(u => new { u.Email })
-                .FirstOrDefaultAsync() ?? throw new MutationException("Invalid user ID.");
+                .FirstOrDefaultAsync() ?? throw new InvalidUserIdException(input.ForId);
 
         var subject = input.Purpose switch
         {
@@ -197,7 +186,7 @@ public class Mutation
             TempCode.TempCodePurpose.ChangeEmail => "Change Email",
             TempCode.TempCodePurpose.EmailVerification => "Email Verification",
             TempCode.TempCodePurpose.DeleteAccount => "Removing Account",
-            _ => throw new MutationException("Invalid purpose."),
+            _ => throw new InvalidTempCodePurposeException(input.Purpose.ToString()),
         };
 
         return new EmailMessage
@@ -215,9 +204,7 @@ public class Mutation
         var validationResults = new List<ValidationResult>();
         if (!Validator.TryValidateObject(input, validationContext, validationResults, true))
         {
-            throw new MutationException(
-                string.Join(" ", validationResults.Select(r => r.ErrorMessage))
-            );
+            throw new ValidationFailedException(validationResults);
         }
     }
 }
