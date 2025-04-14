@@ -79,8 +79,15 @@ public class Mutation
         ValidateInput(input);
 
         var user =
-            await dbContext.Users.FirstOrDefaultAsync(u => u.Email == input.Email)
-            ?? throw new UserNotFoundException(input.Email);
+            await dbContext
+                .Users.Where(u => u.Email == input.Email)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.HashedPassword,
+                    Sessions = u.Sessions.ToList(),
+                })
+                .FirstOrDefaultAsync() ?? throw new UserNotFoundException(input.Email);
 
         if (!User.ValidatePassword(input.Password, user.HashedPassword))
         {
