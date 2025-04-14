@@ -7,10 +7,11 @@ public class SignUpInput
 {
     [Required]
     [EmailAddress]
+    [StringLength(320)]
     public required string Email { get; set; }
 
     [Required]
-    [MinLength(8)]
+    [StringLength(1000, MinimumLength = 8)]
     public required string Password { get; set; }
 
     [Required]
