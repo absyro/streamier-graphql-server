@@ -1,11 +1,13 @@
 namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using RandomString4Net;
 
 /// <summary>
 /// Represents an authenticated user session within the application.
 /// </summary>
+[Table("user_sessions")]
 public class UserSession : Base.BaseEntity
 {
     /// <summary>

@@ -1,10 +1,12 @@
 namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 /// <summary>
 /// Represents a user activity or interaction.
 /// </summary>
+[Table("user_activities")]
 public class UserActivity : Base.BaseEntity
 {
     /// <summary>
