@@ -7,12 +7,15 @@ using Resend;
 using StreamierGraphQLServer.Exceptions;
 using StreamierGraphQLServer.Models;
 using StreamierGraphQLServer.Models.Users;
+using Zxcvbn;
 
 /// <summary>
 /// Represents the root GraphQL mutation type containing all available mutation operations.
 /// </summary>
 public class Mutation
 {
+    private const int MinimumPasswordScore = 3;
+
     private const int MaxSessionsPerUser = 20;
 
     private const int TempCodeExpirationHours = 2;
@@ -21,8 +24,9 @@ public class Mutation
     /// <summary>
     /// Creates a new user account.
     /// </summary>
-    [Error(typeof(UserAlreadyExistsException))]
     [Error(typeof(ValidationFailedException))]
+    [Error(typeof(UserAlreadyExistsException))]
+    [Error(typeof(WeakPasswordException))]
     public async Task<User> SignUp([Service] Contexts.AppDbContext dbContext, SignUpInput input)
     {
         ValidateInput(input);
@@ -30,6 +34,11 @@ public class Mutation
         if (await dbContext.Users.AnyAsync(u => u.Email == input.Email))
         {
             throw new UserAlreadyExistsException(input.Email);
+        }
+
+        if (Core.EvaluatePassword(input.Password).Score < MinimumPasswordScore)
+        {
+            throw new WeakPasswordException();
         }
 
         var userId = await User.GenerateIdAsync(dbContext);
@@ -54,11 +63,11 @@ public class Mutation
     /// <summary>
     /// Creates a new authentication session for an existing user.
     /// </summary>
+    [Error(typeof(ValidationFailedException))]
     [Error(typeof(UserNotFoundException))]
     [Error(typeof(InvalidPasswordException))]
     [Error(typeof(InvalidSessionExpirationException))]
     [Error(typeof(MaxSessionsExceededException))]
-    [Error(typeof(ValidationFailedException))]
     public async Task<Session> SignIn([Service] Contexts.AppDbContext dbContext, SignInInput input)
     {
         ValidateInput(input);
@@ -103,8 +112,8 @@ public class Mutation
     /// <summary>
     /// Deletes an existing session by its ID.
     /// </summary>
-    [Error(typeof(InvalidSessionException))]
     [Error(typeof(ValidationFailedException))]
+    [Error(typeof(InvalidSessionException))]
     public async Task<bool> DeleteSession(
         [Service] Contexts.AppDbContext dbContext,
         DeleteSessionInput input
@@ -123,10 +132,10 @@ public class Mutation
     /// <summary>
     /// Creates a temporary code for a specific purpose and user ID.
     /// </summary>
+    [Error(typeof(ValidationFailedException))]
     [Error(typeof(TempCodeAlreadyExistsException))]
     [Error(typeof(InvalidUserIdException))]
     [Error(typeof(InvalidTempCodePurposeException))]
-    [Error(typeof(ValidationFailedException))]
     public async Task<bool> CreateTempCodeForId(
         [Service] Contexts.AppDbContext dbContext,
         [Service] IResend resend,
