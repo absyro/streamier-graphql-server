@@ -8,19 +8,11 @@ using StreamierGraphQLServer.Contexts;
 /// <summary>
 /// Represents a user account in the system with authentication capabilities and profile settings.
 /// </summary>
-/// <remarks>
-/// This entity stores user information including authentication details, profile settings,
-/// and preferences, following security best practices for credential storage.
-/// </remarks>
 public class User : Base.BaseEntity
 {
     /// <summary>
     /// The user's email address used for authentication and communication.
     /// </summary>
-    /// <value>
-    /// A valid email address string that is unique across the system.
-    /// This field is required and validated for proper email format.
-    /// </value>
     [Required]
     [EmailAddress]
     [StringLength(320)]
@@ -29,10 +21,6 @@ public class User : Base.BaseEntity
     /// <summary>
     /// The user's unique username for public display.
     /// </summary>
-    /// <value>
-    /// A unique alphanumeric string between 3-30 characters.
-    /// This field is required and validated for format and uniqueness.
-    /// </value>
     [Required]
     [StringLength(30, MinimumLength = 3)]
     [RegularExpression(
@@ -44,40 +32,31 @@ public class User : Base.BaseEntity
     /// <summary>
     /// A brief description about the user.
     /// </summary>
-    /// <value>
-    /// A string with maximum length of 500 characters. Optional field.
-    /// </value>
     [StringLength(500)]
     public string? Bio { get; set; }
 
     /// <summary>
     /// A value indicating whether the user's email address has been verified.
     /// </summary>
-    /// <value>
-    /// true if the email address has been verified through a confirmation process;
-    /// otherwise, false. This field is required.
-    /// </value>
     [Required]
     public required bool IsEmailVerified { get; set; }
 
     /// <summary>
     /// The bcrypt-hashed version of the user's password.
     /// </summary>
-    /// <value>
-    /// A string containing the password hash and salt in bcrypt format.
-    /// This field is excluded from GraphQL responses and is required.
-    /// </value>
     [GraphQLIgnore]
     [Required]
     [StringLength(256)]
     public required string HashedPassword { get; set; }
 
     /// <summary>
+    /// Collection of authentication sessions associated with the user.
+    /// </summary>
+    public List<UserSession> Sessions { get; set; } = [];
+
+    /// <summary>
     /// Collection of user activities and interactions.
     /// </summary>
-    /// <value>
-    /// A list of activity objects representing user actions.
-    /// </value>
     public List<UserActivity> Activities { get; set; } = [];
 
     /// <summary>
@@ -95,9 +74,6 @@ public class User : Base.BaseEntity
     /// <summary>
     /// List of user IDs that this user follows.
     /// </summary>
-    /// <value>
-    /// An array of strings representing the IDs of users being followed.
-    /// </value>
     public List<string> Following { get; set; } = [];
 
     /// <summary>

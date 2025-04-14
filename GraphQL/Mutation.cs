@@ -71,7 +71,10 @@ public class Mutation
     [Error(typeof(InvalidPasswordException))]
     [Error(typeof(InvalidSessionExpirationException))]
     [Error(typeof(MaxSessionsExceededException))]
-    public async Task<Session> SignIn([Service] Contexts.AppDbContext dbContext, SignInInput input)
+    public async Task<UserSession> SignIn(
+        [Service] Contexts.AppDbContext dbContext,
+        SignInInput input
+    )
     {
         ValidateInput(input);
 
@@ -93,20 +96,22 @@ public class Mutation
             throw new InvalidSessionExpirationException(minExpiration, maxExpiration);
         }
 
-        var userSessionsCount = await dbContext.Sessions.CountAsync(s => s.UserId == user.Id);
+        var userSessionsCount = await dbContext
+            .Users.Where(u => u.Id == user.Id)
+            .Select(u => u.Sessions.Count)
+            .FirstOrDefaultAsync();
         if (userSessionsCount >= MaxSessionsPerUser)
         {
             throw new MaxSessionsExceededException(MaxSessionsPerUser);
         }
 
-        var session = new Session
+        var session = new UserSession
         {
-            Id = Session.GenerateSessionId(),
-            UserId = user.Id,
+            Id = UserSession.GenerateSessionId(),
             ExpiresAt = input.ExpirationDate,
         };
 
-        dbContext.Sessions.Add(session);
+        user.Sessions.Add(session);
         await dbContext.SaveChangesAsync();
 
         return session;
@@ -122,11 +127,17 @@ public class Mutation
         DeleteSessionInput input
     )
     {
-        var session =
-            await dbContext.Sessions.FirstOrDefaultAsync(s => s.Id == input.SessionId)
+        var user =
+            await dbContext
+                .Users.Include(u => u.Sessions)
+                .FirstOrDefaultAsync(u => u.Sessions.Any(s => s.Id == input.SessionId))
             ?? throw new InvalidSessionException(input.SessionId);
 
-        dbContext.Sessions.Remove(session);
+        var session =
+            user.Sessions.FirstOrDefault(s => s.Id == input.SessionId)
+            ?? throw new InvalidSessionException(input.SessionId);
+
+        user.Sessions.Remove(session);
         await dbContext.SaveChangesAsync();
 
         return true;

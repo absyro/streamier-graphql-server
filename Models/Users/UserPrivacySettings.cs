@@ -49,13 +49,19 @@ public class UserPrivacySettings : BaseEntity
     /// </summary>
     public enum AudienceLevel
     {
-        /// <summary>Anyone, including logged out users</summary>
+        /// <summary>
+        /// Anyone, including logged out users
+        /// </summary>
         Public,
 
-        /// <summary>Only approved followers</summary>
+        /// <summary>
+        /// Only approved followers
+        /// </summary>
         Followers,
 
-        /// <summary>Only the user themselves</summary>
+        /// <summary>
+        /// Only the user themselves
+        /// </summary>
         Private,
     }
 
@@ -64,13 +70,19 @@ public class UserPrivacySettings : BaseEntity
     /// </summary>
     public enum MentionPermission
     {
-        /// <summary>Anyone can mention</summary>
+        /// <summary>
+        /// Anyone can mention
+        /// </summary>
         Anyone,
 
-        /// <summary>Only followers can mention</summary>
+        /// <summary>
+        /// Only followers can mention
+        /// </summary>
         Followers,
 
-        /// <summary>No mentions allowed</summary>
+        /// <summary>
+        /// No mentions allowed
+        /// </summary>
         Disabled,
     }
 }

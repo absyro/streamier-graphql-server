@@ -19,12 +19,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<User> Users => Set<User>();
 
     /// <summary>
-    /// Gets or sets the Sessions table in the database.
-    /// Represents active user sessions within the application.
-    /// </summary>
-    public DbSet<Session> Sessions => Set<Session>();
-
-    /// <summary>
     /// Gets or sets the TempCodes table in the database.
     /// Stores temporary authentication or verification codes with expiration.
     /// </summary>

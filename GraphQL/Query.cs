@@ -2,7 +2,6 @@ namespace StreamierGraphQLServer.GraphQL;
 
 using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
-using StreamierGraphQLServer.Models;
 using StreamierGraphQLServer.Models.Users;
 
 /// <summary>
@@ -17,13 +16,9 @@ public class Query
     [UseFirstOrDefault]
     public IQueryable<User>? GetUser([Service] Contexts.AppDbContext dbContext, string sessionId)
     {
-        var userId = dbContext
-            .Sessions.AsNoTracking()
-            .Where(s => s.Id == sessionId)
-            .Select(s => s.UserId)
-            .FirstOrDefault();
-
-        return string.IsNullOrEmpty(userId) ? null : dbContext.Users.Where(u => u.Id == userId);
+        return dbContext
+            .Users.Include(u => u.Sessions)
+            .Where(u => u.Sessions.Any(s => s.Id == sessionId));
     }
 
     /// <summary>
@@ -33,20 +28,17 @@ public class Query
     [UsePaging]
     [UseProjection]
     [UseFiltering]
-    public IQueryable<Session>? GetUserSessions(
+    public IQueryable<UserSession>? GetUserSessions(
         [Service] Contexts.AppDbContext dbContext,
         string sessionId
     )
     {
-        var userId = dbContext
-            .Sessions.AsNoTracking()
-            .Where(s => s.Id == sessionId)
-            .Select(s => s.UserId)
-            .FirstOrDefault();
+        var user = dbContext
+            .Users.Include(u => u.Sessions)
+            .AsNoTracking()
+            .FirstOrDefault(u => u.Sessions.Any(s => s.Id == sessionId));
 
-        return string.IsNullOrEmpty(userId)
-            ? null
-            : dbContext.Sessions.Where(s => s.UserId == userId);
+        return user?.Sessions.AsQueryable();
     }
 
     /// <summary>
