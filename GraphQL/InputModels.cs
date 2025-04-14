@@ -35,9 +35,17 @@ public class SignInInput
     public required DateTime ExpirationDate { get; set; }
 }
 
-public record DeleteSessionInput([Required] string SessionId);
+public class DeleteSessionInput
+{
+    [Required]
+    public required string SessionId { get; set; }
+}
 
-public record CreateTempCodeForIdInput(
-    [Required] TempCode.TempCodePurpose Purpose,
-    [Required] string ForId
-);
+public class CreateTempCodeForIdInput
+{
+    [Required]
+    public required TempCode.TempCodePurpose Purpose { get; set; }
+
+    [Required]
+    public required string ForId { get; set; }
+}
