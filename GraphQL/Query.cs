@@ -34,11 +34,12 @@ public class Query
     )
     {
         var user = dbContext
-            .Users.Include(u => u.Sessions)
+            .Users.Where(u => u.Sessions.Any(s => s.Id == sessionId))
+            .Select(u => new { Sessions = u.Sessions.Where(s => s.Id == sessionId).AsQueryable() })
             .AsNoTracking()
-            .FirstOrDefault(u => u.Sessions.Any(s => s.Id == sessionId));
+            .FirstOrDefault();
 
-        return user?.Sessions.AsQueryable();
+        return user?.Sessions;
     }
 
     /// <summary>
