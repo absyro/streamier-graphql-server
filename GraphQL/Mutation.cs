@@ -36,9 +36,11 @@ public class Mutation
             throw new UserAlreadyExistsException(input.Email);
         }
 
-        if (Core.EvaluatePassword(input.Password).Score < MinimumPasswordScore)
+        var result = Core.EvaluatePassword(input.Password);
+
+        if (result.Score < MinimumPasswordScore)
         {
-            throw new WeakPasswordException();
+            throw new WeakPasswordException(result.Feedback);
         }
 
         var userId = await User.GenerateIdAsync(dbContext);
