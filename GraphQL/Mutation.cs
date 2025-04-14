@@ -17,7 +17,7 @@ public class Mutation
 {
     private const int MinimumPasswordScore = 3;
 
-    private const int MaxSessionsPerUser = 20;
+    private const int MaxSessionsPerUser = 10;
 
     private const int TempCodeExpirationHours = 2;
     private const int TempCodeLength = 16;
@@ -50,7 +50,6 @@ public class Mutation
         {
             Id = userId,
             Email = input.Email,
-            IsEmailVerified = false,
             HashedPassword = User.HashPassword(input.Password),
             Username = input.Username,
             PrivacySettings = new UserPrivacySettings() { Id = userId },
@@ -80,14 +79,9 @@ public class Mutation
 
         var user =
             await dbContext
-                .Users.Where(u => u.Email == input.Email)
-                .Select(u => new
-                {
-                    u.Id,
-                    u.HashedPassword,
-                    Sessions = u.Sessions.ToList(),
-                })
-                .FirstOrDefaultAsync() ?? throw new UserNotFoundException(input.Email);
+                .Users.Include(u => u.Sessions)
+                .FirstOrDefaultAsync(u => u.Email == input.Email)
+            ?? throw new UserNotFoundException(input.Email);
 
         if (!User.ValidatePassword(input.Password, user.HashedPassword))
         {

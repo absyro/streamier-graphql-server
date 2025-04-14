@@ -39,7 +39,7 @@ public class User : Base.BaseEntity
     /// A value indicating whether the user's email address has been verified.
     /// </summary>
     [Required]
-    public required bool IsEmailVerified { get; set; }
+    public bool IsEmailVerified { get; set; } = false;
 
     /// <summary>
     /// The bcrypt-hashed version of the user's password.
