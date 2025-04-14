@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Resend;
+using StreamierGraphQLServer.Exceptions;
 using StreamierGraphQLServer.Models;
 using StreamierGraphQLServer.Models.Users;
 
@@ -13,15 +14,9 @@ using StreamierGraphQLServer.Models.Users;
 public class Mutation
 {
     private const int MaxSessionsPerUser = 20;
+
     private const int TempCodeExpirationHours = 2;
     private const int TempCodeLength = 16;
-
-    /// <summary>
-    /// Custom exception type for mutation-related errors.
-    /// Provides consistent error handling for GraphQL mutations.
-    /// </summary>
-    /// <param name="message">The error message describing what went wrong.</param>
-    public class MutationException(string message) : Exception(message);
 
     /// <summary>
     /// Creates a new user account.
