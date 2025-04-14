@@ -43,20 +43,4 @@ public class UserPreferences : BaseEntity
     /// </summary>
     [Required]
     public bool PushOnRecommendations { get; set; } = false;
-
-    /// <summary>
-    /// Whether to enable quiet hours for push notifications.
-    /// </summary>
-    [Required]
-    public bool EnableQuietHours { get; set; } = false;
-
-    /// <summary>
-    /// Start time for quiet hours (in user's local time).
-    /// </summary>
-    public TimeSpan? QuietHoursStart { get; set; } = new TimeSpan(22, 0, 0);
-
-    /// <summary>
-    /// End time for quiet hours (in user's local time).
-    /// </summary>
-    public TimeSpan? QuietHoursEnd { get; set; } = new TimeSpan(7, 0, 0);
 }

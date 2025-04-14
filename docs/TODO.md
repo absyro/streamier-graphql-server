@@ -34,3 +34,5 @@
 - [ ] Provide setup and usage guidelines for contributors.
 
 Make code cleaner. Some filds from another classes can be assigned to input classes such as email field from User class to SignUpInput class.
+
+Optimize queries

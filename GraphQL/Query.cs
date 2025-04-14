@@ -14,11 +14,9 @@ public class Query
     /// </summary>
     [UseProjection]
     [UseFirstOrDefault]
-    public IQueryable<User>? GetUser([Service] Contexts.AppDbContext dbContext, string sessionId)
+    public IQueryable<User> GetUser([Service] Contexts.AppDbContext dbContext, string sessionId)
     {
-        return dbContext
-            .Users.Include(u => u.Sessions)
-            .Where(u => u.Sessions.Any(s => s.Id == sessionId));
+        return dbContext.Users.Where(u => u.Sessions.Any(s => s.Id == sessionId));
     }
 
     /// <summary>
