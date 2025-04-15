@@ -128,6 +128,8 @@ public class Mutation
         DeleteSessionInput input
     )
     {
+        ValidateInput(input);
+
         var user =
             await dbContext
                 .Users.Include(u => u.Sessions)
@@ -157,6 +159,8 @@ public class Mutation
         CreateTempCodeForIdInput input
     )
     {
+        ValidateInput(input);
+
         if (
             await dbContext.TempCodes.AnyAsync(c =>
                 c.Purpose == input.Purpose && c.ForId == input.ForId
