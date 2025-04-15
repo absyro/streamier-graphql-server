@@ -108,7 +108,7 @@ public class Mutation
 
         var session = new UserSession
         {
-            Id = UserSession.GenerateSessionId(),
+            Id = RandomString.GetString(Types.ALPHANUMERIC_MIXEDCASE_WITH_SYMBOLS, 128),
             ExpiresAt = input.ExpirationDate,
         };
 
