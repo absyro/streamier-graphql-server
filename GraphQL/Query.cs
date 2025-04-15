@@ -2,6 +2,7 @@ namespace StreamierGraphQLServer.GraphQL;
 
 using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
+using StreamierGraphQLServer.Models.Base;
 using StreamierGraphQLServer.Models.Users;
 
 public class Query
@@ -13,10 +14,8 @@ public class Query
         return dbContext.Users.Where(u => u.Sessions.Any(s => s.Id == sessionId));
     }
 
-    public class UserProfile
+    public class UserProfile : BaseEntity
     {
-        public required string Id { get; set; }
-
         public string? Bio { get; set; }
     }
 
@@ -29,7 +28,13 @@ public class Query
     {
         return dbContext
             .Users.Where(u => u.Id == userId)
-            .Select(u => new UserProfile { Id = u.Id, Bio = u.Bio });
+            .Select(u => new UserProfile
+            {
+                Id = u.Id,
+                Bio = u.Bio,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt,
+            });
     }
 
     public Task<bool> IsEmailInUse([Service] Contexts.AppDbContext dbContext, string email)
