@@ -166,11 +166,34 @@ public class Mutation
             throw new TempCodeAlreadyExistsException(input.Purpose.ToString(), input.ForId);
         }
 
-        var code = GenerateTempCode();
+        var code = Convert.ToBase64String(RandomNumberGenerator.GetBytes(TempCodeLength))[
+            ..TempCodeLength
+        ];
         var codeSalt = TempCode.GenerateCodeSalt();
         var hashedCode = TempCode.HashCode(code, codeSalt);
 
-        var message = await CreateEmailMessage(dbContext, input);
+        var user =
+            await dbContext
+                .Users.Where(u => u.Id == input.ForId)
+                .Select(u => new { u.Email })
+                .FirstOrDefaultAsync() ?? throw new InvalidUserIdException(input.ForId);
+
+        var subject = input.Purpose switch
+        {
+            TempCode.TempCodePurpose.ChangePassword => "Change Password",
+            TempCode.TempCodePurpose.ChangeEmail => "Change Email",
+            TempCode.TempCodePurpose.EmailVerification => "Email Verification",
+            TempCode.TempCodePurpose.DeleteAccount => "Removing Account",
+            _ => throw new InvalidTempCodePurposeException(input.Purpose.ToString()),
+        };
+
+        var message = new EmailMessage
+        {
+            From = "core@botstudioo.com",
+            To = { user.Email },
+            Subject = subject,
+            HtmlBody = "<strong>it works!</strong>",
+        };
 
         dbContext.TempCodes.Add(
             new TempCode
@@ -188,38 +211,6 @@ public class Mutation
         await resend.EmailSendAsync(message);
 
         return true;
-    }
-
-    private static string GenerateTempCode() =>
-        Convert.ToBase64String(RandomNumberGenerator.GetBytes(TempCodeLength))[..TempCodeLength];
-
-    private static async Task<EmailMessage> CreateEmailMessage(
-        Contexts.AppDbContext dbContext,
-        CreateTempCodeForIdInput input
-    )
-    {
-        var user =
-            await dbContext
-                .Users.Where(u => u.Id == input.ForId)
-                .Select(u => new { u.Email })
-                .FirstOrDefaultAsync() ?? throw new InvalidUserIdException(input.ForId);
-
-        var subject = input.Purpose switch
-        {
-            TempCode.TempCodePurpose.ChangePassword => "Change Password",
-            TempCode.TempCodePurpose.ChangeEmail => "Change Email",
-            TempCode.TempCodePurpose.EmailVerification => "Email Verification",
-            TempCode.TempCodePurpose.DeleteAccount => "Removing Account",
-            _ => throw new InvalidTempCodePurposeException(input.Purpose.ToString()),
-        };
-
-        return new EmailMessage
-        {
-            From = "core@botstudioo.com",
-            To = { user.Email },
-            Subject = subject,
-            HtmlBody = "<strong>it works!</strong>",
-        };
     }
 
     private static void ValidateInput(object input)
