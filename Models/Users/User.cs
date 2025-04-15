@@ -1,9 +1,6 @@
 namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
-using RandomString4Net;
-using StreamierGraphQLServer.Contexts;
 
 /// <summary>
 /// Represents a user account in the system with authentication capabilities and profile settings.
@@ -64,61 +61,4 @@ public class User : Base.BaseEntity
     /// List of user IDs that this user follows.
     /// </summary>
     public List<string> Following { get; set; } = [];
-
-    /// <summary>
-    /// Generates a unique identifier for the user.
-    /// </summary>
-    /// <param name="dbContext">The database context to check for uniqueness against.</param>
-    /// <returns>
-    /// A string representing a unique identifier for the user.
-    /// </returns>
-    /// <remarks>
-    /// Uses cryptographically secure random generation to create 8-character
-    /// lowercase alphanumeric IDs, verifying uniqueness against the database.
-    /// </remarks>
-    public static async Task<string> GenerateIdAsync(AppDbContext dbContext)
-    {
-        string id;
-
-        do
-        {
-            id = RandomString.GetString(Types.ALPHANUMERIC_LOWERCASE, 8);
-        } while (await dbContext.Users.AnyAsync(u => u.Id == id));
-
-        return id;
-    }
-
-    /// <summary>
-    /// Securely hashes a password using bcrypt with a work factor of 12.
-    /// </summary>
-    /// <param name="password">The plaintext password to hash.</param>
-    /// <returns>
-    /// A string containing the bcrypt hash of the password,
-    /// including the salt and work factor.
-    /// </returns>
-    /// <remarks>
-    /// The work factor of 12 provides a good balance between security
-    /// and performance (approximately 250-300ms hash time on modern hardware).
-    /// </remarks>
-    public static string HashPassword(string password)
-    {
-        return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
-    }
-
-    /// <summary>
-    /// Verifies a plaintext password against a stored bcrypt hash.
-    /// </summary>
-    /// <param name="password">The plaintext password to verify.</param>
-    /// <param name="hashedPassword">The stored bcrypt hash to compare against.</param>
-    /// <returns>
-    /// true if the password matches the hash; otherwise, false.
-    /// </returns>
-    /// <remarks>
-    /// This method uses bcrypt's constant-time comparison to prevent
-    /// timing attacks during password verification.
-    /// </remarks>
-    public static bool ValidatePassword(string password, string hashedPassword)
-    {
-        return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
-    }
 }

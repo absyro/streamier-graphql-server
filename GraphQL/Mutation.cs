@@ -2,6 +2,7 @@ namespace StreamierGraphQLServer.GraphQL;
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using RandomString4Net;
 using StreamierGraphQLServer.Exceptions;
 using StreamierGraphQLServer.Inputs;
 using StreamierGraphQLServer.Models.Users;
@@ -34,15 +35,23 @@ public class Mutation
             throw new WeakPasswordException(result.Feedback);
         }
 
-        var userId = await User.GenerateIdAsync(dbContext);
+        string id;
+
+        do
+        {
+            id = RandomString.GetString(Types.ALPHANUMERIC_LOWERCASE, 8);
+        } while (await dbContext.Users.AnyAsync(u => u.Id == id));
 
         var newUser = new User
         {
-            Id = userId,
+            Id = id,
             Email = input.Email,
-            HashedPassword = User.HashPassword(input.Password),
-            PrivacySettings = new UserPrivacySettings() { Id = userId },
-            Preferences = new UserPreferences() { Id = userId },
+            HashedPassword = BCrypt.Net.BCrypt.HashPassword(
+                input.Password,
+                BCrypt.Net.BCrypt.GenerateSalt(12)
+            ),
+            PrivacySettings = new UserPrivacySettings() { Id = id },
+            Preferences = new UserPreferences() { Id = id },
         };
 
         dbContext.Users.Add(newUser);
@@ -72,7 +81,7 @@ public class Mutation
                 .FirstOrDefaultAsync(u => u.Email == input.Email)
             ?? throw new UserNotFoundException();
 
-        if (!User.ValidatePassword(input.Password, user.HashedPassword))
+        if (!BCrypt.Net.BCrypt.Verify(input.Password, user.HashedPassword))
         {
             throw new InvalidPasswordException();
         }
