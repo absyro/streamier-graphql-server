@@ -19,9 +19,6 @@ public class Mutation
 
     private const int MaxSessionsPerUser = 10;
 
-    private const int TempCodeExpirationHours = 2;
-    private const int TempCodeLength = 16;
-
     /// <summary>
     /// Creates a new user account.
     /// </summary>
@@ -142,77 +139,6 @@ public class Mutation
 
         user.Sessions.Remove(session);
         await dbContext.SaveChangesAsync();
-
-        return true;
-    }
-
-    /// <summary>
-    /// Creates a temporary code for a specific purpose and entity ID.
-    /// </summary>
-    [Error(typeof(ValidationFailedException))]
-    [Error(typeof(TempCodeAlreadyExistsException))]
-    [Error(typeof(InvalidUserIdException))]
-    [Error(typeof(InvalidTempCodePurposeException))]
-    public async Task<bool> CreateTempCode(
-        [Service] Contexts.AppDbContext dbContext,
-        [Service] IResend resend,
-        CreateTempCodeInput input
-    )
-    {
-        ValidateInput(input);
-
-        if (
-            await dbContext.TempCodes.AnyAsync(c =>
-                c.Purpose == input.Purpose && c.EntityId == input.EntityId
-            )
-        )
-        {
-            throw new TempCodeAlreadyExistsException(input.Purpose.ToString(), input.EntityId);
-        }
-
-        var code = Convert.ToBase64String(RandomNumberGenerator.GetBytes(TempCodeLength))[
-            ..TempCodeLength
-        ];
-        var codeSalt = TempCode.GenerateCodeSalt();
-        var hashedCode = TempCode.HashCode(code, codeSalt);
-
-        var user =
-            await dbContext
-                .Users.Where(u => u.Id == input.EntityId)
-                .Select(u => new { u.Email })
-                .FirstOrDefaultAsync() ?? throw new InvalidUserIdException(input.EntityId);
-
-        var subject = input.Purpose switch
-        {
-            TempCode.TempCodePurpose.ChangePassword => "Change Password",
-            TempCode.TempCodePurpose.ChangeEmail => "Change Email",
-            TempCode.TempCodePurpose.EmailVerification => "Email Verification",
-            TempCode.TempCodePurpose.DeleteAccount => "Removing Account",
-            _ => throw new InvalidTempCodePurposeException(input.Purpose.ToString()),
-        };
-
-        var message = new EmailMessage
-        {
-            From = "core@botstudioo.com",
-            To = { user.Email },
-            Subject = subject,
-            HtmlBody = "<strong>it works!</strong>",
-        };
-
-        dbContext.TempCodes.Add(
-            new TempCode
-            {
-                Id = TempCode.GenerateCode(),
-                Purpose = input.Purpose,
-                EntityId = input.EntityId,
-                HashedCode = hashedCode,
-                CodeSalt = codeSalt,
-                ExpiresAt = DateTime.UtcNow.AddHours(TempCodeExpirationHours),
-            }
-        );
-
-        await dbContext.SaveChangesAsync();
-        await resend.EmailSendAsync(message);
 
         return true;
     }

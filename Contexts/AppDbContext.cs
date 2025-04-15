@@ -19,12 +19,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<User> Users => Set<User>();
 
     /// <summary>
-    /// Gets or sets the TempCodes table in the database.
-    /// Stores temporary authentication or verification codes with expiration.
-    /// </summary>
-    public DbSet<TempCode> TempCodes => Set<TempCode>();
-
-    /// <summary>
     /// Saves all changes made in this context to the database asynchronously.
     /// Automatically updates timestamps for modified entities before saving.
     /// </summary>

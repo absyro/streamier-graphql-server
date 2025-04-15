@@ -7,7 +7,6 @@
 - [ ] Return a **boolean** indicating success of email send.
 - [ ] Extend login mutation to accept `loginCode` (the verification code).
 - [ ] Validate user-submitted 2FA code before completing login.
-- [ ] Integrate with **Temporary Codes** to ensure seamless behavior with existing temporary login flows.
 
 ### 📄 Automatic Expiration of Documents
 
