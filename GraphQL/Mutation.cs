@@ -1,12 +1,9 @@
 namespace StreamierGraphQLServer.GraphQL;
 
 using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
-using Resend;
 using StreamierGraphQLServer.Exceptions;
 using StreamierGraphQLServer.Inputs;
-using StreamierGraphQLServer.Models;
 using StreamierGraphQLServer.Models.Users;
 using Zxcvbn;
 
@@ -15,10 +12,6 @@ using Zxcvbn;
 /// </summary>
 public class Mutation
 {
-    private const int MinimumPasswordScore = 3;
-
-    private const int MaxSessionsPerUser = 10;
-
     /// <summary>
     /// Creates a new user account.
     /// </summary>
@@ -36,7 +29,7 @@ public class Mutation
 
         var result = Core.EvaluatePassword(input.Password);
 
-        if (result.Score < MinimumPasswordScore)
+        if (result.Score < 3)
         {
             throw new WeakPasswordException(result.Feedback);
         }
@@ -93,6 +86,8 @@ public class Mutation
         {
             throw new InvalidSessionExpirationException(minExpiration, maxExpiration);
         }
+
+        const int MaxSessionsPerUser = 3;
 
         var userSessionsCount = await dbContext
             .Users.Where(u => u.Id == user.Id)
