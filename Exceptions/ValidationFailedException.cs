@@ -3,7 +3,7 @@ namespace StreamierGraphQLServer.Exceptions;
 using System.ComponentModel.DataAnnotations;
 
 /// <summary>
-/// Thrown when input validation fails during a mutation operation.
+/// Thrown when input validation fails.
 /// </summary>
 /// <param name="validationResults">The collection of validation results that failed.</param>
 public class ValidationFailedException(IEnumerable<ValidationResult> validationResults)
