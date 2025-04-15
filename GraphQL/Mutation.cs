@@ -147,27 +147,27 @@ public class Mutation
     }
 
     /// <summary>
-    /// Creates a temporary code for a specific purpose and user ID.
+    /// Creates a temporary code for a specific purpose and entity ID.
     /// </summary>
     [Error(typeof(ValidationFailedException))]
     [Error(typeof(TempCodeAlreadyExistsException))]
     [Error(typeof(InvalidUserIdException))]
     [Error(typeof(InvalidTempCodePurposeException))]
-    public async Task<bool> CreateTempCodeForId(
+    public async Task<bool> CreateTempCode(
         [Service] Contexts.AppDbContext dbContext,
         [Service] IResend resend,
-        CreateTempCodeForIdInput input
+        CreateTempCodeInput input
     )
     {
         ValidateInput(input);
 
         if (
             await dbContext.TempCodes.AnyAsync(c =>
-                c.Purpose == input.Purpose && c.ForId == input.ForId
+                c.Purpose == input.Purpose && c.EntityId == input.EntityId
             )
         )
         {
-            throw new TempCodeAlreadyExistsException(input.Purpose.ToString(), input.ForId);
+            throw new TempCodeAlreadyExistsException(input.Purpose.ToString(), input.EntityId);
         }
 
         var code = Convert.ToBase64String(RandomNumberGenerator.GetBytes(TempCodeLength))[
@@ -178,9 +178,9 @@ public class Mutation
 
         var user =
             await dbContext
-                .Users.Where(u => u.Id == input.ForId)
+                .Users.Where(u => u.Id == input.EntityId)
                 .Select(u => new { u.Email })
-                .FirstOrDefaultAsync() ?? throw new InvalidUserIdException(input.ForId);
+                .FirstOrDefaultAsync() ?? throw new InvalidUserIdException(input.EntityId);
 
         var subject = input.Purpose switch
         {
@@ -204,7 +204,7 @@ public class Mutation
             {
                 Id = TempCode.GenerateCode(),
                 Purpose = input.Purpose,
-                ForId = input.ForId,
+                EntityId = input.EntityId,
                 HashedCode = hashedCode,
                 CodeSalt = codeSalt,
                 ExpiresAt = DateTime.UtcNow.AddHours(TempCodeExpirationHours),

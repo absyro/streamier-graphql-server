@@ -6,7 +6,7 @@ using StreamierGraphQLServer.Models;
 /// <summary>
 /// Represents the input required to create a temporary code for an entity.
 /// </summary>
-public class CreateTempCodeForIdInput
+public class CreateTempCodeInput
 {
     /// <summary>
     /// The purpose for which the temporary code will be used.
@@ -18,5 +18,5 @@ public class CreateTempCodeForIdInput
     /// The identifier of the entity for which the temporary code is being created.
     /// </summary>
     [Required]
-    public required string ForId { get; set; }
+    public required string EntityId { get; set; }
 }

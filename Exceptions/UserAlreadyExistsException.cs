@@ -5,4 +5,4 @@ namespace StreamierGraphQLServer.Exceptions;
 /// </summary>
 /// <param name="email">The email address of the existing user.</param>
 public class UserAlreadyExistsException(string email)
-    : Exception($"A user with the email '{email}' already exists.");
+    : Exception($"A user with the email ({email}) already exists.");

@@ -5,4 +5,4 @@ namespace StreamierGraphQLServer.Exceptions;
 /// </summary>
 /// <param name="email">The email address of the non-existent user.</param>
 public class UserNotFoundException(string email)
-    : Exception($"No user found with email '{email}'.");
+    : Exception($"No user found with email ({email}).");

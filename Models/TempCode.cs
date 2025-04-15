@@ -28,12 +28,12 @@ public class TempCode : Base.BaseEntity
     /// The identifier of the entity this code is associated with.
     /// </summary>
     /// <value>
-    /// A string representing the ID of the user or entity this code relates to.
+    /// A string representing the ID of the entity this code relates to.
     /// This field is required.
     /// </value>
     [Required]
     [StringLength(128)]
-    public required string ForId { get; set; }
+    public required string EntityId { get; set; }
 
     /// <summary>
     /// The SHA256-hashed version of the temporary code.
