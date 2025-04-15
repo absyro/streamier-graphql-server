@@ -4,14 +4,8 @@ using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
 using StreamierGraphQLServer.Models.Users;
 
-/// <summary>
-/// Represents the root GraphQL query type containing all available query operations.
-/// </summary>
 public class Query
 {
-    /// <summary>
-    /// Retrieves a single user by their session ID.
-    /// </summary>
     [UseProjection]
     [UseFirstOrDefault]
     public IQueryable<User> GetUser([Service] Contexts.AppDbContext dbContext, string sessionId)
@@ -19,31 +13,26 @@ public class Query
         return dbContext.Users.Where(u => u.Sessions.Any(s => s.Id == sessionId));
     }
 
-    /// <summary>
-    /// Retrieves all sessions associated with a user identified by a session ID.
-    /// Supports paging, projection, and filtering.
-    /// </summary>
-    [UsePaging]
-    [UseProjection]
-    [UseFiltering]
-    public IQueryable<UserSession>? GetUserSessions(
-        [Service] Contexts.AppDbContext dbContext,
-        string sessionId
-    )
+    public class UserProfile
     {
-        var user = dbContext
-            .Users.Where(u => u.Sessions.Any(s => s.Id == sessionId))
-            .Select(u => new { Sessions = u.Sessions.Where(s => s.Id == sessionId).AsQueryable() })
-            .AsNoTracking()
-            .FirstOrDefault();
+        public required string Id { get; set; }
 
-        return user?.Sessions;
+        public string? Bio { get; set; }
     }
 
-    /// <summary>
-    /// Checks whether a user with the specified email exists in the system.
-    /// </summary>
-    public Task<bool> DoesUserExist([Service] Contexts.AppDbContext dbContext, string email)
+    [UseProjection]
+    [UseFirstOrDefault]
+    public IQueryable<UserProfile> GetUserProfile(
+        [Service] Contexts.AppDbContext dbContext,
+        string userId
+    )
+    {
+        return dbContext
+            .Users.Where(u => u.Id == userId)
+            .Select(u => new UserProfile { Id = u.Id, Bio = u.Bio });
+    }
+
+    public Task<bool> IsEmailInUse([Service] Contexts.AppDbContext dbContext, string email)
     {
         return dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email);
     }
