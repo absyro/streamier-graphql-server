@@ -21,15 +21,4 @@ public class SignUpInput
     [Required]
     [StringLength(1000, MinimumLength = 8)]
     public required string Password { get; set; }
-
-    /// <summary>
-    /// The unique username for the new user account.
-    /// </summary>
-    [Required]
-    [StringLength(30, MinimumLength = 3)]
-    [RegularExpression(
-        @"^[a-z0-9_]+$",
-        ErrorMessage = "Username can only contain lowercase letters, numbers, and underscores."
-    )]
-    public required string Username { get; set; }
 }

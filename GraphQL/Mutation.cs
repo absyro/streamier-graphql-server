@@ -41,7 +41,6 @@ public class Mutation
             Id = userId,
             Email = input.Email,
             HashedPassword = User.HashPassword(input.Password),
-            Username = input.Username,
             PrivacySettings = new UserPrivacySettings() { Id = userId },
             Preferences = new UserPreferences() { Id = userId },
         };
