@@ -137,6 +137,33 @@ public class Mutation
         return true;
     }
 
+    /// <summary>
+    /// Updates a user's information.
+    /// </summary>
+    [Error(typeof(ValidationFailedException))]
+    [Error(typeof(UserNotFoundException))]
+    public async Task<User> UpdateUser(
+        [Service] Contexts.AppDbContext dbContext,
+        UpdateUserInput input
+    )
+    {
+        ValidateInput(input);
+
+        var user =
+            await dbContext
+                .Users.Where(u => u.Sessions.Any(s => s.Id == input.SessionId))
+                .FirstOrDefaultAsync() ?? throw new UserNotFoundException();
+
+        if (input.Bio != null)
+        {
+            user.Bio = input.Bio;
+        }
+
+        await dbContext.SaveChangesAsync();
+
+        return user;
+    }
+
     private static void ValidateInput(object input)
     {
         var validationContext = new ValidationContext(input);
