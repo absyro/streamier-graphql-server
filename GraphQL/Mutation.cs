@@ -70,7 +70,7 @@ public class Mutation
             await dbContext
                 .Users.Include(u => u.Sessions)
                 .FirstOrDefaultAsync(u => u.Email == input.Email)
-            ?? throw new UserNotFoundException(input.Email);
+            ?? throw new UserNotFoundException();
 
         if (!User.ValidatePassword(input.Password, user.HashedPassword))
         {
