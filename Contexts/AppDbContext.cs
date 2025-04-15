@@ -1,7 +1,6 @@
 namespace StreamierGraphQLServer.Contexts;
 
 using Microsoft.EntityFrameworkCore;
-using StreamierGraphQLServer.Models;
 using StreamierGraphQLServer.Models.Base;
 using StreamierGraphQLServer.Models.Users;
 
