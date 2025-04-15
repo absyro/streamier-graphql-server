@@ -42,7 +42,7 @@ public class Mutation
             id = RandomString.GetString(Types.ALPHANUMERIC_LOWERCASE, 8);
         } while (await dbContext.Users.AnyAsync(u => u.Id == id));
 
-        var newUser = new User
+        var user = new User
         {
             Id = id,
             Email = input.Email,
@@ -54,10 +54,10 @@ public class Mutation
             Preferences = new UserPreferences() { Id = id },
         };
 
-        dbContext.Users.Add(newUser);
+        dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
 
-        return newUser;
+        return user;
     }
 
     /// <summary>
