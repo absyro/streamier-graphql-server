@@ -29,7 +29,7 @@ public static class ServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         services.AddConfiguration(configuration);
-        services.AddHttpServices(configuration);
+        services.AddHttpServices();
         services.AddRateLimiting();
         services.AddCorsPolicy();
         services.AddDatabaseContext(configuration);
@@ -54,7 +54,10 @@ public static class ServiceCollectionExtensions
             configuration["Resend:ApiToken"]
             ?? throw new Exceptions.ConfigurationException("Resend API Token is missing");
 
-        services.Configure<ResendClientOptions>(options => options.ApiToken = resendApiToken);
+        services.Configure<ResendClientOptions>(options =>
+        {
+            options.ApiToken = resendApiToken;
+        });
 
         return services;
     }
@@ -63,12 +66,8 @@ public static class ServiceCollectionExtensions
     /// Registers HTTP client services used by the application.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
-    /// <param name="configuration">The application configuration.</param>
     /// <returns>The configured <see cref="IServiceCollection"/>.</returns>
-    private static IServiceCollection AddHttpServices(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    private static IServiceCollection AddHttpServices(this IServiceCollection services)
     {
         services.AddHttpClient<ResendClient>();
 
@@ -87,15 +86,20 @@ public static class ServiceCollectionExtensions
         {
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
                 httpContext =>
-                    RateLimitPartition.GetFixedWindowLimiter(
+                {
+                    return RateLimitPartition.GetFixedWindowLimiter(
                         partitionKey: httpContext.Connection.RemoteIpAddress?.ToString()
                             ?? "anonymous",
-                        factory: _ => new FixedWindowRateLimiterOptions
+                        factory: _ =>
                         {
-                            PermitLimit = 15,
-                            Window = TimeSpan.FromSeconds(10),
+                            return new FixedWindowRateLimiterOptions
+                            {
+                                PermitLimit = 15,
+                                Window = TimeSpan.FromSeconds(10),
+                            };
                         }
-                    )
+                    );
+                }
             );
 
             options.OnRejected = async (context, cancellationToken) =>
@@ -126,8 +130,9 @@ public static class ServiceCollectionExtensions
         services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
-                builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()
-            );
+            {
+                builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+            });
         });
 
         return services;
@@ -151,8 +156,9 @@ public static class ServiceCollectionExtensions
             ?? throw new Exceptions.ConfigurationException("Postgres connection string is missing");
 
         services.AddDbContext<Contexts.AppDbContext>(options =>
-            options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention()
-        );
+        {
+            options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention();
+        });
 
         return services;
     }
@@ -172,7 +178,10 @@ public static class ServiceCollectionExtensions
             .AddMutationConventions(applyToAllMutations: true)
             .AddQueryType<GraphQL.Query>()
             .AddMutationType<GraphQL.Mutation>()
-            .ModifyPagingOptions(options => options.IncludeTotalCount = true)
+            .ModifyPagingOptions(options =>
+            {
+                options.IncludeTotalCount = true;
+            })
             .AddFiltering()
             .AddProjections();
 
