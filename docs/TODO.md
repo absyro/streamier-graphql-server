@@ -32,6 +32,4 @@
 - [ ] Explain database automation and triggers used.
 - [ ] Provide setup and usage guidelines for contributors.
 
-Optimize queries
-
 Fix removing sessions from users
