@@ -12,10 +12,6 @@ using Resend;
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
-    private const int RateLimitPermits = 15;
-
-    private static readonly TimeSpan RateLimitWindow = TimeSpan.FromSeconds(10);
-
     /// <summary>
     /// Registers all application services with the dependency injection container.
     /// This is the main entry point for service configuration.
@@ -97,8 +93,8 @@ public static class ServiceCollectionExtensions
                             ?? "anonymous",
                         factory: _ => new FixedWindowRateLimiterOptions
                         {
-                            PermitLimit = RateLimitPermits,
-                            Window = RateLimitWindow,
+                            PermitLimit = 15,
+                            Window = TimeSpan.FromSeconds(10),
                         }
                     )
             );
