@@ -30,7 +30,6 @@ public static class ServiceCollectionExtensions
 
         services.AddConfiguration(configuration);
         services.AddHttpServices(configuration);
-        services.AddHealthChecks();
         services.AddRateLimiting();
         services.AddCorsPolicy();
         services.AddDatabaseContext(configuration);

@@ -33,7 +33,6 @@ public static class Program
         app.UseRateLimiter();
 
         app.MapGraphQL();
-        app.MapHealthChecks("/health");
 
         app.Run();
     }
