@@ -3,62 +3,86 @@ namespace StreamierGraphQLServer.Models.Users;
 using System.ComponentModel.DataAnnotations;
 
 /// <summary>
-/// Represents a user account in the system with authentication capabilities and profile settings.
+/// Represents a user account in the system, containing authentication details,
+/// profile information, preferences, and social connections.
+/// Inherits from <see cref="Base.BaseEntity"/> for common entity properties.
 /// </summary>
 public class User : Base.BaseEntity
 {
     /// <summary>
-    /// The user's email address used for authentication and communication.
+    /// The user's primary email address. This is used for authentication,
+    /// communication, and account recovery. Must be a valid email format.
     /// </summary>
+    /// <remarks>
+    /// Maximum length is 320 characters per RFC 5321 standards.
+    /// </remarks>
     [Required]
     [EmailAddress]
     [StringLength(320)]
     public required string Email { get; set; }
 
     /// <summary>
-    /// A brief description about the user.
+    /// The user's biographical information or description.
+    /// This is displayed on the user's public profile when visible per privacy settings.
     /// </summary>
+    /// <remarks>
+    /// Maximum length is 500 characters. Optional field.
+    /// </remarks>
     [StringLength(500)]
     public string? Bio { get; set; }
 
     /// <summary>
-    /// A value indicating whether the user's email address has been verified.
+    /// A value indicating whether the user's email address
+    /// has been verified through the email confirmation process.
+    /// Defaults to false for new users.
     /// </summary>
     [Required]
     public bool IsEmailVerified { get; set; } = false;
 
     /// <summary>
-    /// The bcrypt-hashed version of the user's password.
+    /// The bcrypt-hashed password for the user account.
+    /// This field is excluded from GraphQL responses for security.
     /// </summary>
+    /// <remarks>
+    /// The plain-text password should never be stored. Maximum hash length is 256 characters.
+    /// </remarks>
     [GraphQLIgnore]
     [Required]
     [StringLength(256)]
     public required string HashedPassword { get; set; }
 
     /// <summary>
-    /// Collection of authentication sessions associated with the user.
+    /// The collection of active authentication sessions
+    /// associated with this user account.
     /// </summary>
     public List<UserSession> Sessions { get; set; } = [];
 
     /// <summary>
-    /// Collection of user activities and interactions.
+    /// The collection of activities and interactions
+    /// performed by this user, used for activity tracking and analytics.
     /// </summary>
     public List<UserActivity> Activities { get; set; } = [];
 
     /// <summary>
-    /// User's privacy and visibility settings.
+    /// The user's privacy configuration, controlling
+    /// visibility of profile elements and data sharing preferences.
     /// </summary>
     [Required]
     public required UserPrivacySettings PrivacySettings { get; set; }
 
     /// <summary>
-    /// User's notification and communication preferences.
+    /// The user's personal preferences including
+    /// notification settings, display preferences, and system behavior.
     /// </summary>
     [Required]
     public required UserPreferences Preferences { get; set; }
 
     /// <summary>
-    /// List of user IDs that this user follows.
+    /// The list of user IDs that this user is following,
+    /// representing one-directional social connections.
     /// </summary>
+    /// <remarks>
+    /// This collection is used to build the user's social graph and feed content.
+    /// </remarks>
     public List<string> Following { get; set; } = [];
 }

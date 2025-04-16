@@ -4,56 +4,69 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 /// <summary>
-/// Represents a user activity or interaction.
+/// Represents an auditable record of user actions and system interactions within the platform.
+/// This entity is persisted to the 'user_activities' table for historical tracking and analytics.
 /// </summary>
+/// <remarks>
+/// Activities are used for security auditing, user behavior analysis, and generating activity feeds.
+/// </remarks>
 [Table("user_activities")]
 public class UserActivity : Base.BaseEntity
 {
     /// <summary>
-    /// Type of user activity.
+    /// Enumerates the types of user activities tracked by the system.
+    /// Each value corresponds to a significant user action or system event.
     /// </summary>
     public enum ActivityType
     {
         /// <summary>
-        /// User logged into the system
+        /// Records when a user successfully authenticates into the system.
+        /// Includes both initial login and session renewals.
         /// </summary>
         Login,
 
         /// <summary>
-        /// User created a new stream
+        /// Created when a user initiates a new streaming session.
         /// </summary>
         StreamCreated,
 
         /// <summary>
-        /// User followed another user
+        /// Generated when a user establishes a following relationship with another user.
         /// </summary>
         Follow,
 
         /// <summary>
-        /// User unfollowed a previously followed user
+        /// Generated when a user removes a previously established following relationship.
         /// </summary>
         Unfollow,
 
         /// <summary>
-        /// User updated their profile information
+        /// Triggered when any profile field (bio, avatar, etc.) is modified.
         /// </summary>
         ProfileUpdate,
 
         /// <summary>
-        /// User changed their account password
+        /// Recorded when the user changes their account password through any method.
+        /// Does not include initial password set during registration.
         /// </summary>
         PasswordChange,
     }
 
     /// <summary>
-    /// Type of activity (e.g., Login, StreamCreated, Follow).
+    /// The classification of this activity record.
+    /// Determines how the activity is processed and displayed.
     /// </summary>
     [Required]
     public required ActivityType Type { get; set; }
 
     /// <summary>
-    /// Detailed description of the activity.
+    /// A human-readable explanation of the activity.
+    /// Typically includes contextual details about the specific action.
     /// </summary>
+    /// <example>
+    /// "User followed account: johndoe@example.com"
+    /// "Password changed via email reset link"
+    /// </example>
     [Required]
     public required string Description { get; set; }
 }
