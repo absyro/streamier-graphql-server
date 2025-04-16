@@ -10,12 +10,20 @@ using Zxcvbn;
 
 /// <summary>
 /// Represents the root GraphQL mutation type containing all available mutation operations.
+/// This class handles all write operations including user registration, authentication,
+/// session management, and user profile updates.
 /// </summary>
 public class Mutation
 {
     /// <summary>
-    /// Creates a new user account.
+    /// Creates a new user account with the provided credentials and information.
     /// </summary>
+    /// <param name="dbContext">The application database context.</param>
+    /// <param name="input">User registration data including email and password.</param>
+    /// <returns>The newly created User object.</returns>
+    /// <exception cref="ValidationFailedException">Thrown when input validation fails.</exception>
+    /// <exception cref="UserAlreadyExistsException">Thrown when the email is already registered.</exception>
+    /// <exception cref="WeakPasswordException">Thrown when the password doesn't meet strength requirements.</exception>
     [Error(typeof(ValidationFailedException))]
     [Error(typeof(UserAlreadyExistsException))]
     [Error(typeof(WeakPasswordException))]
@@ -64,6 +72,14 @@ public class Mutation
     /// <summary>
     /// Creates a new authentication session for an existing user.
     /// </summary>
+    /// <param name="dbContext">The application database context.</param>
+    /// <param name="input">Login credentials including email, password, and desired session expiration.</param>
+    /// <returns>The newly created <see cref="UserSession"/> object.</returns>
+    /// <exception cref="ValidationFailedException">Thrown when input validation fails.</exception>
+    /// <exception cref="UserNotFoundException">Thrown when no user exists with the provided email.</exception>
+    /// <exception cref="InvalidPasswordException">Thrown when password verification fails.</exception>
+    /// <exception cref="InvalidSessionExpirationException">Thrown when expiration date is outside allowed range.</exception>
+    /// <exception cref="MaxSessionsExceededException">Thrown when user already has maximum allowed sessions.</exception>
     [Error(typeof(ValidationFailedException))]
     [Error(typeof(UserNotFoundException))]
     [Error(typeof(InvalidPasswordException))]
@@ -123,8 +139,13 @@ public class Mutation
     }
 
     /// <summary>
-    /// Deletes an existing session by its ID.
+    /// Terminates an existing authentication session.
     /// </summary>
+    /// <param name="dbContext">The application database context.</param>
+    /// <param name="input">Session deletion request containing the session ID.</param>
+    /// <returns>True if the session was successfully deleted.</returns>
+    /// <exception cref="ValidationFailedException">Thrown when input validation fails.</exception>
+    /// <exception cref="InvalidSessionException">Thrown when the session doesn't exist or is invalid.</exception>
     [Error(typeof(ValidationFailedException))]
     [Error(typeof(InvalidSessionException))]
     public async Task<bool> DeleteSession(
@@ -152,8 +173,13 @@ public class Mutation
     }
 
     /// <summary>
-    /// Updates a user's information.
+    /// Updates user profile information.
     /// </summary>
+    /// <param name="dbContext">The application database context.</param>
+    /// <param name="input">Update request containing the changes and session ID for authentication.</param>
+    /// <returns>The updated User object.</returns>
+    /// <exception cref="ValidationFailedException">Thrown when input validation fails.</exception>
+    /// <exception cref="UserNotFoundException">Thrown when no valid user session exists.</exception>
     [Error(typeof(ValidationFailedException))]
     [Error(typeof(UserNotFoundException))]
     public async Task<User> UpdateUser(
@@ -178,6 +204,11 @@ public class Mutation
         return user;
     }
 
+    /// <summary>
+    /// Validates an input object using its data annotation attributes.
+    /// </summary>
+    /// <param name="input">The input object to validate.</param>
+    /// <exception cref="ValidationFailedException">Thrown when validation fails.</exception>
     private static void ValidateInput(object input)
     {
         var validationContext = new ValidationContext(input);
