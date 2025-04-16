@@ -55,6 +55,7 @@ public class Mutation
         };
 
         dbContext.Users.Add(user);
+
         await dbContext.SaveChangesAsync();
 
         return user;
@@ -87,6 +88,7 @@ public class Mutation
         }
 
         var now = DateTime.UtcNow;
+
         var minExpiration = now.AddHours(1);
         var maxExpiration = now.AddDays(365);
 
@@ -101,6 +103,7 @@ public class Mutation
             .Users.Where(u => u.Id == user.Id)
             .Select(u => u.Sessions.Count)
             .FirstOrDefaultAsync();
+
         if (userSessionsCount >= MaxSessionsPerUser)
         {
             throw new MaxSessionsExceededException(MaxSessionsPerUser);
@@ -113,6 +116,7 @@ public class Mutation
         };
 
         user.Sessions.Add(session);
+
         await dbContext.SaveChangesAsync();
 
         return session;
@@ -141,6 +145,7 @@ public class Mutation
             ?? throw new InvalidSessionException(input.SessionId);
 
         user.Sessions.Remove(session);
+
         await dbContext.SaveChangesAsync();
 
         return true;
@@ -177,6 +182,7 @@ public class Mutation
     {
         var validationContext = new ValidationContext(input);
         var validationResults = new List<ValidationResult>();
+
         if (!Validator.TryValidateObject(input, validationContext, validationResults, true))
         {
             throw new ValidationFailedException(validationResults);
