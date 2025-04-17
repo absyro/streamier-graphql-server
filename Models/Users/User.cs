@@ -26,10 +26,10 @@ public class User : Base.BaseEntity
     /// This is displayed on the user's public profile when visible per privacy settings.
     /// </summary>
     /// <remarks>
-    /// Maximum length is 500 characters. Optional field.
+    /// Maximum length is 500 characters.
     /// </remarks>
     [StringLength(500)]
-    public string? Bio { get; set; }
+    public string Bio { get; set; } = "Hi! I'm using Streamier.";
 
     /// <summary>
     /// A value indicating whether the user's email address

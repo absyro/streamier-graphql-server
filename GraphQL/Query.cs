@@ -31,7 +31,7 @@ public class Query
         /// <summary>
         /// The biography or description of the user.
         /// </summary>
-        public string? Bio { get; set; }
+        public required string Bio { get; set; }
     }
 
     /// <summary>
