@@ -98,20 +98,17 @@ public class Query
         string password
     )
     {
-        var user = await dbContext.Users.FirstOrDefaultAsync(u =>
-            u.Email == emailOrUsername || u.Username == emailOrUsername
-        );
-
-        if (user == null)
-        {
-            throw new GraphQLException(
+        var user =
+            await dbContext.Users.FirstOrDefaultAsync(u =>
+                u.Email == emailOrUsername || u.Username == emailOrUsername
+            )
+            ?? throw new GraphQLException(
                 ErrorBuilder
                     .New()
                     .SetMessage("Account not found.")
                     .SetCode("ACCOUNT_NOT_FOUND")
                     .Build()
             );
-        }
 
         if (!BCrypt.Net.BCrypt.Verify(password, user.HashedPassword))
         {

@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using OtpNet;
 using RandomString4Net;
-using StreamierGraphQLServer.Exceptions;
 using StreamierGraphQLServer.Inputs;
 using StreamierGraphQLServer.Models.Users;
 using Zxcvbn;
@@ -19,29 +18,46 @@ public class Mutation
     /// <summary>
     /// Creates a new user account with the provided credentials and information.
     /// </summary>
-    [Error(typeof(ValidationFailedException))]
-    [Error(typeof(EmailAlreadyExistsException))]
-    [Error(typeof(UsernameTakenException))]
-    [Error(typeof(WeakPasswordException))]
     public async Task<User> SignUp([Service] Contexts.AppDbContext dbContext, SignUpInput input)
     {
         ValidateInput(input);
 
         if (await dbContext.Users.AnyAsync(u => u.Email == input.Email))
         {
-            throw new EmailAlreadyExistsException(input.Email);
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Email already exists")
+                    .SetCode("EMAIL_ALREADY_EXISTS")
+                    .SetExtension("email", input.Email)
+                    .Build()
+            );
         }
 
         if (await dbContext.Users.AnyAsync(u => u.Username == input.Username))
         {
-            throw new UsernameTakenException(input.Username);
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Username already taken")
+                    .SetCode("USERNAME_TAKEN")
+                    .SetExtension("username", input.Username)
+                    .Build()
+            );
         }
 
         var result = Core.EvaluatePassword(input.Password);
 
         if (result.Score < 3)
         {
-            throw new WeakPasswordException(result.Feedback);
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Password is too weak")
+                    .SetCode("WEAK_PASSWORD")
+                    .SetExtension("feedback", result.Feedback)
+                    .Build()
+            );
         }
 
         string id;
@@ -74,11 +90,6 @@ public class Mutation
     /// <summary>
     /// Creates a new authentication session for an existing user.
     /// </summary>
-    [Error(typeof(ValidationFailedException))]
-    [Error(typeof(UserNotFoundException))]
-    [Error(typeof(InvalidPasswordException))]
-    [Error(typeof(InvalidSessionExpirationException))]
-    [Error(typeof(MaxSessionsExceededException))]
     public async Task<UserSession> SignIn(
         [Service] Contexts.AppDbContext dbContext,
         SignInInput input
@@ -90,18 +101,32 @@ public class Mutation
             await dbContext
                 .Users.Include(u => u.Sessions)
                 .FirstOrDefaultAsync(u => u.Email == input.Email)
-            ?? throw new UserNotFoundException();
+            ?? throw new GraphQLException(
+                ErrorBuilder.New().SetMessage("User not found").SetCode("USER_NOT_FOUND").Build()
+            );
 
         if (!BCrypt.Net.BCrypt.Verify(input.Password, user.HashedPassword))
         {
-            throw new InvalidPasswordException();
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Invalid password")
+                    .SetCode("INVALID_PASSWORD")
+                    .Build()
+            );
         }
 
         if (user.TwoFactorAuthentication != null)
         {
             if (input.TwoFactorAuthenticationCode == null)
             {
-                throw new InvalidTwoFactorAuthenticationCodeException();
+                throw new GraphQLException(
+                    ErrorBuilder
+                        .New()
+                        .SetMessage("Two-factor authentication code required")
+                        .SetCode("2FA_REQUIRED")
+                        .Build()
+                );
             }
 
             var totp = new Totp(Base32Encoding.ToBytes(user.TwoFactorAuthentication.Secret));
@@ -120,7 +145,13 @@ public class Mutation
                     )
                 )
                 {
-                    throw new InvalidTwoFactorAuthenticationCodeException();
+                    throw new GraphQLException(
+                        ErrorBuilder
+                            .New()
+                            .SetMessage("Invalid two-factor authentication code")
+                            .SetCode("INVALID_2FA_CODE")
+                            .Build()
+                    );
                 }
 
                 user.TwoFactorAuthentication.RecoveryCodes.Remove(
@@ -137,9 +168,6 @@ public class Mutation
     /// <summary>
     /// Enables two-factor authentication for a user account.
     /// </summary>
-    [Error(typeof(ValidationFailedException))]
-    [Error(typeof(UserNotFoundException))]
-    [Error(typeof(InvalidSessionException))]
     public async Task<EnableTwoFactorAuthenticationResult> EnableTwoFactorAuthentication(
         [Service] Contexts.AppDbContext dbContext,
         EnableTwoFactorAuthenticationInput input
@@ -150,7 +178,10 @@ public class Mutation
         var user =
             await dbContext.Users.FirstOrDefaultAsync(u =>
                 u.Sessions.Any(s => s.Id == input.SessionId)
-            ) ?? throw new UserNotFoundException();
+            )
+            ?? throw new GraphQLException(
+                ErrorBuilder.New().SetMessage("User not found").SetCode("USER_NOT_FOUND").Build()
+            );
 
         var secretKey = KeyGeneration.GenerateRandomKey(20);
         var base32Secret = Base32Encoding.ToString(secretKey);
@@ -176,10 +207,6 @@ public class Mutation
     /// <summary>
     /// Disables two-factor authentication for a user account.
     /// </summary>
-    [Error(typeof(ValidationFailedException))]
-    [Error(typeof(UserNotFoundException))]
-    [Error(typeof(InvalidSessionException))]
-    [Error(typeof(InvalidPasswordException))]
     public async Task<bool> DisableTwoFactorAuthentication(
         [Service] Contexts.AppDbContext dbContext,
         DisableTwoFactorAuthenticationInput input
@@ -190,11 +217,20 @@ public class Mutation
         var user =
             await dbContext.Users.FirstOrDefaultAsync(u =>
                 u.Sessions.Any(s => s.Id == input.SessionId)
-            ) ?? throw new UserNotFoundException();
+            )
+            ?? throw new GraphQLException(
+                ErrorBuilder.New().SetMessage("User not found").SetCode("USER_NOT_FOUND").Build()
+            );
 
         if (!BCrypt.Net.BCrypt.Verify(input.Password, user.HashedPassword))
         {
-            throw new InvalidPasswordException();
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Invalid password")
+                    .SetCode("INVALID_PASSWORD")
+                    .Build()
+            );
         }
 
         user.TwoFactorAuthentication = null;
@@ -207,9 +243,6 @@ public class Mutation
     /// <summary>
     /// Generates new recovery codes for two-factor authentication.
     /// </summary>
-    [Error(typeof(ValidationFailedException))]
-    [Error(typeof(UserNotFoundException))]
-    [Error(typeof(InvalidSessionException))]
     public async Task<List<string>> GenerateNewRecoveryCodes(
         [Service] Contexts.AppDbContext dbContext,
         GenerateRecoveryCodesInput input
@@ -220,11 +253,20 @@ public class Mutation
         var user =
             await dbContext.Users.FirstOrDefaultAsync(u =>
                 u.Sessions.Any(s => s.Id == input.SessionId)
-            ) ?? throw new UserNotFoundException();
+            )
+            ?? throw new GraphQLException(
+                ErrorBuilder.New().SetMessage("User not found").SetCode("USER_NOT_FOUND").Build()
+            );
 
         if (user.TwoFactorAuthentication == null)
         {
-            throw new InvalidOperationException("Two-factor authentication is not enabled");
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Two-factor authentication is not enabled")
+                    .SetCode("2FA_NOT_ENABLED")
+                    .Build()
+            );
         }
 
         var recoveryCodes = User.GenerateRecoveryCodes();
@@ -259,7 +301,14 @@ public class Mutation
 
         if (!Validator.TryValidateObject(input, validationContext, validationResults, true))
         {
-            throw new ValidationFailedException(validationResults);
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Validation failed")
+                    .SetCode("VALIDATION_FAILED")
+                    .SetExtension("errors", validationResults)
+                    .Build()
+            );
         }
     }
 }
