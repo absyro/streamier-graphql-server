@@ -1,8 +1,8 @@
 namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 using RandomString4Net;
-using StreamierGraphQLServer.Exceptions;
 using StreamierGraphQLServer.Models.Base;
 
 /// <summary>
@@ -119,36 +119,17 @@ public class User : BaseEntity
 
     public static async Task<UserSession> GenerateSessionAsync(
         Contexts.AppDbContext dbContext,
-        User user,
         DateTime expirationDate
     )
     {
-        var now = DateTime.UtcNow;
+        string id;
 
-        var minExpiration = now.AddHours(1);
-        var maxExpiration = now.AddDays(365);
-
-        if (expirationDate < minExpiration || expirationDate > maxExpiration)
+        do
         {
-            throw new InvalidSessionExpirationException(minExpiration, maxExpiration);
-        }
+            id = RandomString.GetString(Types.ALPHANUMERIC_MIXEDCASE_WITH_SYMBOLS, 128);
+        } while (await dbContext.Users.AnyAsync(u => u.Sessions.Any(s => s.Id == id)));
 
-        const int MaxSessionsPerUser = 5;
-
-        if (user.Sessions.Count >= MaxSessionsPerUser)
-        {
-            throw new MaxSessionsExceededException(MaxSessionsPerUser);
-        }
-
-        var session = new UserSession
-        {
-            Id = RandomString.GetString(Types.ALPHANUMERIC_MIXEDCASE_WITH_SYMBOLS, 128),
-            ExpiresAt = expirationDate,
-        };
-
-        user.Sessions.Add(session);
-
-        await dbContext.SaveChangesAsync();
+        var session = new UserSession { Id = id, ExpiresAt = expirationDate };
 
         return session;
     }

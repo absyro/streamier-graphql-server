@@ -97,6 +97,22 @@ public class Mutation
     {
         ValidateInput(input);
 
+        var now = DateTime.UtcNow;
+
+        var minExpiration = now.AddHours(1);
+        var maxExpiration = now.AddDays(365);
+
+        if (input.ExpirationDate < minExpiration || input.ExpirationDate > maxExpiration)
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Invalid expiration date")
+                    .SetCode("INVALID_EXPIRATION_DATE")
+                    .Build()
+            );
+        }
+
         var user =
             await dbContext
                 .Users.Include(u => u.Sessions)
@@ -162,7 +178,28 @@ public class Mutation
             }
         }
 
-        return await User.GenerateSessionAsync(dbContext, user, input.ExpirationDate);
+        const int MaxSessionsPerUser = 5;
+
+        if (user.Sessions.Count >= MaxSessionsPerUser)
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage(
+                        $"Maximum number of sessions per user ({MaxSessionsPerUser}) reached"
+                    )
+                    .SetCode("MAX_SESSIONS_PER_USER")
+                    .Build()
+            );
+        }
+
+        var session = await User.GenerateSessionAsync(dbContext, input.ExpirationDate);
+
+        user.Sessions.Add(session);
+
+        await dbContext.SaveChangesAsync();
+
+        return session;
     }
 
     /// <summary>
