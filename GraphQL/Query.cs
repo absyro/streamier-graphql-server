@@ -25,17 +25,6 @@ public class Query
     }
 
     /// <summary>
-    /// Nested class representing a user profile with basic information.
-    /// </summary>
-    public class UserProfile : BaseEntity
-    {
-        /// <summary>
-        /// The biography or description of the user.
-        /// </summary>
-        public required string Bio { get; set; }
-    }
-
-    /// <summary>
     /// Retrieves a user profile for a specific user ID.
     /// </summary>
     /// <param name="dbContext">The application database context.</param>
@@ -79,5 +68,16 @@ public class Query
     public Task<bool> IsUsernameInUse([Service] Contexts.AppDbContext dbContext, string username)
     {
         return dbContext.Users.AsNoTracking().AnyAsync(u => u.Username == username);
+    }
+
+    /// <summary>
+    /// Nested class representing a user profile with basic information.
+    /// </summary>
+    public class UserProfile : BaseEntity
+    {
+        /// <summary>
+        /// The biography or description of the user.
+        /// </summary>
+        public required string Bio { get; set; }
     }
 }
