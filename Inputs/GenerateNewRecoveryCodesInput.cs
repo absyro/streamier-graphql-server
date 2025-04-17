@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 /// <summary>
 /// Input for generating new two-factor authentication recovery codes
 /// </summary>
-public class GenerateRecoveryCodesInput
+public class GenerateNewRecoveryCodesInput
 {
     /// <summary>
     /// The session ID of the authenticated user

@@ -311,7 +311,7 @@ public class Mutation
     /// </summary>
     public async Task<List<string>> GenerateNewRecoveryCodes(
         [Service] Contexts.AppDbContext dbContext,
-        GenerateRecoveryCodesInput input
+        GenerateNewRecoveryCodesInput input
     )
     {
         ValidateInput(input);
