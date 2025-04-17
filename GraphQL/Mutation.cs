@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using OtpNet;
 using RandomString4Net;
 using StreamierGraphQLServer.Inputs;
-using StreamierGraphQLServer.Models.Users;
+using StreamierGraphQLServer.Models;
 using Zxcvbn;
 
 /// <summary>

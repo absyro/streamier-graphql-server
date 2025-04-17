@@ -1,8 +1,8 @@
 namespace StreamierGraphQLServer.Contexts;
 
 using Microsoft.EntityFrameworkCore;
+using StreamierGraphQLServer.Models;
 using StreamierGraphQLServer.Models.Base;
-using StreamierGraphQLServer.Models.Users;
 
 /// <summary>
 /// The primary database context for the application, managing interactions with the database.

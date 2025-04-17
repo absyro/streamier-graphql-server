@@ -3,8 +3,8 @@ namespace StreamierGraphQLServer.GraphQL;
 using System.Threading.Tasks;
 using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
+using StreamierGraphQLServer.Models;
 using StreamierGraphQLServer.Models.Base;
-using StreamierGraphQLServer.Models.Users;
 
 /// <summary>
 /// GraphQL query class containing all the root query operations.
