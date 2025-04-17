@@ -14,6 +14,24 @@ using System.ComponentModel.DataAnnotations.Schema;
 public class UserActivity : Base.BaseEntity
 {
     /// <summary>
+    /// The classification of this activity record.
+    /// Determines how the activity is processed and displayed.
+    /// </summary>
+    [Required]
+    public required ActivityType Type { get; set; }
+
+    /// <summary>
+    /// A human-readable explanation of the activity.
+    /// Typically includes contextual details about the specific action.
+    /// </summary>
+    /// <example>
+    /// "User followed account: johndoe@example.com"
+    /// "Password changed via email reset link"
+    /// </example>
+    [Required]
+    public required string Description { get; set; }
+
+    /// <summary>
     /// Enumerates the types of user activities tracked by the system.
     /// Each value corresponds to a significant user action or system event.
     /// </summary>
@@ -51,22 +69,4 @@ public class UserActivity : Base.BaseEntity
         /// </summary>
         PasswordChange,
     }
-
-    /// <summary>
-    /// The classification of this activity record.
-    /// Determines how the activity is processed and displayed.
-    /// </summary>
-    [Required]
-    public required ActivityType Type { get; set; }
-
-    /// <summary>
-    /// A human-readable explanation of the activity.
-    /// Typically includes contextual details about the specific action.
-    /// </summary>
-    /// <example>
-    /// "User followed account: johndoe@example.com"
-    /// "Password changed via email reset link"
-    /// </example>
-    [Required]
-    public required string Description { get; set; }
 }
