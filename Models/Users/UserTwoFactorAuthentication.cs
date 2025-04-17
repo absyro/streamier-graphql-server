@@ -30,6 +30,10 @@ public class UserTwoFactorAuthentication : BaseEntity
     [Required]
     public List<string> RecoveryCodes { get; set; } = [];
 
+    /// <summary>
+    /// Generates a set of recovery codes for two-factor authentication.
+    /// </summary>
+    /// <returns>A list of 10 randomly generated alphanumeric (uppercase) recovery codes, each 12 characters long.</returns>
     public static List<string> GenerateRecoveryCodes()
     {
         return Enumerable
