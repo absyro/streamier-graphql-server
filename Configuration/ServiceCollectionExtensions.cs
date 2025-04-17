@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Resend;
+using StreamierGraphQLServer.Exceptions;
 
 /// <summary>
 /// Provides extension methods for configuring and adding services to the <see cref="IServiceCollection"/>.
@@ -44,7 +45,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <param name="configuration">The application configuration.</param>
     /// <returns>The configured <see cref="IServiceCollection"/>.</returns>
-    /// <exception cref="Exceptions.ConfigurationException">Thrown if required configuration is missing.</exception>
+    /// <exception cref="ConfigurationException">Thrown if required configuration is missing.</exception>
     private static IServiceCollection AddConfiguration(
         this IServiceCollection services,
         IConfiguration configuration
@@ -52,7 +53,7 @@ public static class ServiceCollectionExtensions
     {
         var resendApiToken =
             configuration["Resend:ApiToken"]
-            ?? throw new Exceptions.ConfigurationException("Resend API Token is missing");
+            ?? throw new ConfigurationException("Resend API Token is missing");
 
         services.Configure<ResendClientOptions>(options =>
         {
@@ -145,7 +146,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
     /// <param name="configuration">The application configuration.</param>
     /// <returns>The configured <see cref="IServiceCollection"/>.</returns>
-    /// <exception cref="Exceptions.ConfigurationException">Thrown if the connection string is missing.</exception>
+    /// <exception cref="ConfigurationException">Thrown if the connection string is missing.</exception>
     private static IServiceCollection AddDatabaseContext(
         this IServiceCollection services,
         IConfiguration configuration
@@ -153,7 +154,7 @@ public static class ServiceCollectionExtensions
     {
         var connectionString =
             configuration.GetConnectionString("Postgres")
-            ?? throw new Exceptions.ConfigurationException("Postgres connection string is missing");
+            ?? throw new ConfigurationException("Postgres connection string is missing");
 
         services.AddDbContext<Contexts.AppDbContext>(options =>
         {
