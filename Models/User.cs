@@ -99,11 +99,11 @@ public class User : BaseEntity
     public required UserPreferences Preferences { get; set; }
 
     /// <summary>
-    /// The list of user IDs that this user is following,
+    /// The list of users that this user is following,
     /// representing one-directional social connections.
     /// </summary>
     /// <remarks>
     /// This collection is used to build the user's social graph and feed content.
     /// </remarks>
-    public List<string> Following { get; set; } = [];
+    public List<User> Following { get; set; } = [];
 }
