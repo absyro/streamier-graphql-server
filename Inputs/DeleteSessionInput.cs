@@ -18,5 +18,6 @@ public class DeleteSessionInput
     /// A non-nullable string representing the session's unique key.
     /// </value>
     [Required]
+    [StringLength(128)]
     public required string SessionId { get; set; }
 }

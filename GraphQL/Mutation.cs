@@ -2,6 +2,7 @@ namespace StreamierGraphQLServer.GraphQL;
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using OtpNet;
 using RandomString4Net;
 using StreamierGraphQLServer.Exceptions;
 using StreamierGraphQLServer.Inputs;
@@ -18,13 +19,6 @@ public class Mutation
     /// <summary>
     /// Creates a new user account with the provided credentials and information.
     /// </summary>
-    /// <param name="dbContext">The application database context.</param>
-    /// <param name="input">User registration data including email and password.</param>
-    /// <returns>The newly created User object.</returns>
-    /// <exception cref="ValidationFailedException">Thrown when input validation fails.</exception>
-    /// <exception cref="EmailAlreadyExistsException">Thrown when the email is already registered.</exception>
-    /// <exception cref="UsernameTakenException">Thrown when the username is already taken.</exception>
-    /// <exception cref="WeakPasswordException">Thrown when the password doesn't meet strength requirements.</exception>
     [Error(typeof(ValidationFailedException))]
     [Error(typeof(EmailAlreadyExistsException))]
     [Error(typeof(UsernameTakenException))]
@@ -80,14 +74,6 @@ public class Mutation
     /// <summary>
     /// Creates a new authentication session for an existing user.
     /// </summary>
-    /// <param name="dbContext">The application database context.</param>
-    /// <param name="input">Login credentials including email, password, and desired session expiration.</param>
-    /// <returns>The newly created <see cref="UserSession"/> object.</returns>
-    /// <exception cref="ValidationFailedException">Thrown when input validation fails.</exception>
-    /// <exception cref="UserNotFoundException">Thrown when no user exists with the provided email.</exception>
-    /// <exception cref="InvalidPasswordException">Thrown when password verification fails.</exception>
-    /// <exception cref="InvalidSessionExpirationException">Thrown when expiration date is outside allowed range.</exception>
-    /// <exception cref="MaxSessionsExceededException">Thrown when user already has maximum allowed sessions.</exception>
     [Error(typeof(ValidationFailedException))]
     [Error(typeof(UserNotFoundException))]
     [Error(typeof(InvalidPasswordException))]
@@ -111,69 +97,107 @@ public class Mutation
             throw new InvalidPasswordException();
         }
 
-        var now = DateTime.UtcNow;
-
-        var minExpiration = now.AddHours(1);
-        var maxExpiration = now.AddDays(365);
-
-        if (input.ExpirationDate < minExpiration || input.ExpirationDate > maxExpiration)
+        if (user.TwoFactorAuthentication != null)
         {
-            throw new InvalidSessionExpirationException(minExpiration, maxExpiration);
+            if (input.TwoFactorAuthenticationCode == null)
+            {
+                throw new InvalidTwoFactorAuthenticationCodeException();
+            }
+
+            var totp = new Totp(Base32Encoding.ToBytes(user.TwoFactorAuthentication.Secret));
+
+            if (
+                !totp.VerifyTotp(
+                    input.TwoFactorAuthenticationCode,
+                    out _,
+                    new VerificationWindow(1, 1)
+                )
+            )
+            {
+                if (
+                    !user.TwoFactorAuthentication.RecoveryCodes.Contains(
+                        input.TwoFactorAuthenticationCode
+                    )
+                )
+                {
+                    throw new InvalidTwoFactorAuthenticationCodeException();
+                }
+
+                user.TwoFactorAuthentication.RecoveryCodes.Remove(
+                    input.TwoFactorAuthenticationCode
+                );
+
+                await dbContext.SaveChangesAsync();
+            }
         }
 
-        const int MaxSessionsPerUser = 3;
-
-        var userSessionsCount = await dbContext
-            .Users.Where(u => u.Id == user.Id)
-            .Select(u => u.Sessions.Count)
-            .FirstOrDefaultAsync();
-
-        if (userSessionsCount >= MaxSessionsPerUser)
-        {
-            throw new MaxSessionsExceededException(MaxSessionsPerUser);
-        }
-
-        var session = new UserSession
-        {
-            Id = RandomString.GetString(Types.ALPHANUMERIC_MIXEDCASE_WITH_SYMBOLS, 128),
-            ExpiresAt = input.ExpirationDate,
-        };
-
-        user.Sessions.Add(session);
-
-        await dbContext.SaveChangesAsync();
-
-        return session;
+        return await User.GenerateSessionAsync(dbContext, user, input.ExpirationDate);
     }
 
     /// <summary>
-    /// Terminates an existing authentication session.
+    /// Enables two-factor authentication for a user account.
     /// </summary>
-    /// <param name="dbContext">The application database context.</param>
-    /// <param name="input">Session deletion request containing the session ID.</param>
-    /// <returns>True if the session was successfully deleted.</returns>
-    /// <exception cref="ValidationFailedException">Thrown when input validation fails.</exception>
-    /// <exception cref="InvalidSessionException">Thrown when the session doesn't exist or is invalid.</exception>
     [Error(typeof(ValidationFailedException))]
+    [Error(typeof(UserNotFoundException))]
     [Error(typeof(InvalidSessionException))]
-    public async Task<bool> DeleteSession(
+    public async Task<EnableTwoFactorAuthenticationResult> EnableTwoFactorAuthentication(
         [Service] Contexts.AppDbContext dbContext,
-        DeleteSessionInput input
+        EnableTwoFactorAuthenticationInput input
     )
     {
         ValidateInput(input);
 
         var user =
-            await dbContext
-                .Users.Include(u => u.Sessions)
-                .FirstOrDefaultAsync(u => u.Sessions.Any(s => s.Id == input.SessionId))
-            ?? throw new InvalidSessionException(input.SessionId);
+            await dbContext.Users.FirstOrDefaultAsync(u =>
+                u.Sessions.Any(s => s.Id == input.SessionId)
+            ) ?? throw new UserNotFoundException();
 
-        var session =
-            user.Sessions.FirstOrDefault(s => s.Id == input.SessionId)
-            ?? throw new InvalidSessionException(input.SessionId);
+        var secretKey = KeyGeneration.GenerateRandomKey(20);
+        var base32Secret = Base32Encoding.ToString(secretKey);
 
-        user.Sessions.Remove(session);
+        var recoveryCodes = User.GenerateRecoveryCodes();
+
+        user.TwoFactorAuthentication = new UserTwoFactorAuthentication
+        {
+            Id = user.Id,
+            RecoveryCodes = recoveryCodes,
+            Secret = base32Secret,
+        };
+
+        await dbContext.SaveChangesAsync();
+
+        return new EnableTwoFactorAuthenticationResult
+        {
+            SecretKey = base32Secret,
+            RecoveryCodes = recoveryCodes,
+        };
+    }
+
+    /// <summary>
+    /// Disables two-factor authentication for a user account.
+    /// </summary>
+    [Error(typeof(ValidationFailedException))]
+    [Error(typeof(UserNotFoundException))]
+    [Error(typeof(InvalidSessionException))]
+    [Error(typeof(InvalidPasswordException))]
+    public async Task<bool> DisableTwoFactorAuthentication(
+        [Service] Contexts.AppDbContext dbContext,
+        DisableTwoFactorAuthenticationInput input
+    )
+    {
+        ValidateInput(input);
+
+        var user =
+            await dbContext.Users.FirstOrDefaultAsync(u =>
+                u.Sessions.Any(s => s.Id == input.SessionId)
+            ) ?? throw new UserNotFoundException();
+
+        if (!BCrypt.Net.BCrypt.Verify(input.Password, user.HashedPassword))
+        {
+            throw new InvalidPasswordException();
+        }
+
+        user.TwoFactorAuthentication = null;
 
         await dbContext.SaveChangesAsync();
 
@@ -181,42 +205,53 @@ public class Mutation
     }
 
     /// <summary>
-    /// Updates user profile information.
+    /// Generates new recovery codes for two-factor authentication.
     /// </summary>
-    /// <param name="dbContext">The application database context.</param>
-    /// <param name="input">Update request containing the changes and session ID for authentication.</param>
-    /// <returns>The updated User object.</returns>
-    /// <exception cref="ValidationFailedException">Thrown when input validation fails.</exception>
-    /// <exception cref="UserNotFoundException">Thrown when no valid user session exists.</exception>
     [Error(typeof(ValidationFailedException))]
     [Error(typeof(UserNotFoundException))]
-    public async Task<User> UpdateUser(
+    [Error(typeof(InvalidSessionException))]
+    public async Task<List<string>> GenerateNewRecoveryCodes(
         [Service] Contexts.AppDbContext dbContext,
-        UpdateUserInput input
+        GenerateRecoveryCodesInput input
     )
     {
         ValidateInput(input);
 
         var user =
-            await dbContext
-                .Users.Where(u => u.Sessions.Any(s => s.Id == input.SessionId))
-                .FirstOrDefaultAsync() ?? throw new UserNotFoundException();
+            await dbContext.Users.FirstOrDefaultAsync(u =>
+                u.Sessions.Any(s => s.Id == input.SessionId)
+            ) ?? throw new UserNotFoundException();
 
-        if (input.Bio != null)
+        if (user.TwoFactorAuthentication == null)
         {
-            user.Bio = input.Bio;
+            throw new InvalidOperationException("Two-factor authentication is not enabled");
         }
+
+        var recoveryCodes = User.GenerateRecoveryCodes();
+
+        user.TwoFactorAuthentication.RecoveryCodes = recoveryCodes;
 
         await dbContext.SaveChangesAsync();
 
-        return user;
+        return recoveryCodes;
     }
 
     /// <summary>
-    /// Validates an input object using its data annotation attributes.
+    /// Represents the result of enabling two-factor authentication.
     /// </summary>
-    /// <param name="input">The input object to validate.</param>
-    /// <exception cref="ValidationFailedException">Thrown when validation fails.</exception>
+    public class EnableTwoFactorAuthenticationResult
+    {
+        /// <summary>
+        /// The secret key used to generate two-factor codes.
+        /// </summary>
+        public string SecretKey { get; set; } = null!;
+
+        /// <summary>
+        /// The recovery codes for two-factor authentication.
+        /// </summary>
+        public List<string> RecoveryCodes { get; set; } = null!;
+    }
+
     private static void ValidateInput(object input)
     {
         var validationContext = new ValidationContext(input);

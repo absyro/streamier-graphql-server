@@ -19,6 +19,7 @@ public class UpdateUserInput
     /// This field is required to authorize the update operation.
     /// </value>
     [Required]
+    [StringLength(128)]
     public required string SessionId { get; set; }
 
     /// <summary>

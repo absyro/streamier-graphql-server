@@ -1,5 +1,6 @@
 namespace StreamierGraphQLServer.GraphQL;
 
+using System.Threading.Tasks;
 using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
 using StreamierGraphQLServer.Models.Base;
@@ -63,9 +64,66 @@ public class Query
     /// </summary>
     /// <param name="dbContext">The application database context.</param>
     /// <param name="email">The email address to check.</param>
-    /// <returns>A task that resolves to true if the email is in use, false otherwise.</returns>
+    /// <returns>True if the email is in use, false otherwise.</returns>
     public Task<bool> IsEmailInUse([Service] Contexts.AppDbContext dbContext, string email)
     {
         return dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email);
+    }
+
+    /// <summary>
+    /// Checks if a username is already in use by any user.
+    /// </summary>
+    /// <param name="dbContext">The application database context.</param>
+    /// <param name="username">The username to check.</param>
+    /// <returns>True if the username is in use, false otherwise.</returns>
+    public Task<bool> IsUsernameInUse([Service] Contexts.AppDbContext dbContext, string username)
+    {
+        return dbContext.Users.AsNoTracking().AnyAsync(u => u.Username == username);
+    }
+
+    /// <summary>
+    /// Checks if an account has two-factor authentication enabled.
+    /// Requires password verification for security.
+    /// </summary>
+    /// <param name="dbContext">The application database context.</param>
+    /// <param name="emailOrUsername">The email or username of the account to check.</param>
+    /// <param name="password">The account password for verification.</param>
+    /// <returns>
+    /// Boolean indicating if 2FA is enabled.
+    /// </returns>
+    /// <exception cref="GraphQLException">Thrown when the user is not found or password is invalid.</exception>
+    public async Task<bool> IsTwoFactorAuthenticationEnabled(
+        [Service] Contexts.AppDbContext dbContext,
+        string emailOrUsername,
+        string password
+    )
+    {
+        var user = await dbContext.Users.FirstOrDefaultAsync(u =>
+            u.Email == emailOrUsername || u.Username == emailOrUsername
+        );
+
+        if (user == null)
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Account not found.")
+                    .SetCode("ACCOUNT_NOT_FOUND")
+                    .Build()
+            );
+        }
+
+        if (!BCrypt.Net.BCrypt.Verify(password, user.HashedPassword))
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Invalid credentials.")
+                    .SetCode("INVALID_CREDENTIALS")
+                    .Build()
+            );
+        }
+
+        return user.TwoFactorAuthentication != null;
     }
 }

@@ -1,6 +1,8 @@
 namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
+using RandomString4Net;
+using StreamierGraphQLServer.Exceptions;
 using StreamierGraphQLServer.Models.Base;
 
 /// <summary>
@@ -67,6 +69,12 @@ public class User : BaseEntity
     public required string HashedPassword { get; set; }
 
     /// <summary>
+    /// The two-factor authentication configuration for this user.
+    /// </summary>
+    [GraphQLIgnore]
+    public UserTwoFactorAuthentication? TwoFactorAuthentication { get; set; }
+
+    /// <summary>
     /// The collection of active authentication sessions
     /// associated with this user account.
     /// </summary>
@@ -100,4 +108,48 @@ public class User : BaseEntity
     /// This collection is used to build the user's social graph and feed content.
     /// </remarks>
     public List<string> Following { get; set; } = [];
+
+    public static List<string> GenerateRecoveryCodes()
+    {
+        return Enumerable
+            .Range(0, 10)
+            .Select(_ => RandomString.GetString(Types.ALPHANUMERIC_UPPERCASE, 12))
+            .ToList();
+    }
+
+    public static async Task<UserSession> GenerateSessionAsync(
+        Contexts.AppDbContext dbContext,
+        User user,
+        DateTime expirationDate
+    )
+    {
+        var now = DateTime.UtcNow;
+
+        var minExpiration = now.AddHours(1);
+        var maxExpiration = now.AddDays(365);
+
+        if (expirationDate < minExpiration || expirationDate > maxExpiration)
+        {
+            throw new InvalidSessionExpirationException(minExpiration, maxExpiration);
+        }
+
+        const int MaxSessionsPerUser = 5;
+
+        if (user.Sessions.Count >= MaxSessionsPerUser)
+        {
+            throw new MaxSessionsExceededException(MaxSessionsPerUser);
+        }
+
+        var session = new UserSession
+        {
+            Id = RandomString.GetString(Types.ALPHANUMERIC_MIXEDCASE_WITH_SYMBOLS, 128),
+            ExpiresAt = expirationDate,
+        };
+
+        user.Sessions.Add(session);
+
+        await dbContext.SaveChangesAsync();
+
+        return session;
+    }
 }

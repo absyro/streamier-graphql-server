@@ -15,11 +15,12 @@ public class SignInInput
     /// The email address associated with the user account.
     /// </summary>
     /// <value>
-    /// A valid email address string that matches the account's registered email.
-    /// Must conform to standard email format (RFC 5322).
+    /// A valid email address string conforming to standard email format (RFC 5322),
+    /// with a maximum length of 320 characters (per RFC 3696 specification).
     /// </value>
     [Required]
     [EmailAddress]
+    [StringLength(320)]
     public required string Email { get; set; }
 
     /// <summary>
@@ -30,7 +31,16 @@ public class SignInInput
     /// For security, the raw password should never be stored or logged.
     /// </value>
     [Required]
+    [StringLength(1000, MinimumLength = 8)]
     public required string Password { get; set; }
+
+    /// <summary>
+    /// The two-factor authentication code provided by the user.
+    /// </summary>
+    /// <value>
+    /// A string value representing the two-factor authentication code provided by the user.
+    /// </value>
+    public string? TwoFactorAuthenticationCode { get; set; }
 
     /// <summary>
     /// The termination timestamp for the authentication session.
