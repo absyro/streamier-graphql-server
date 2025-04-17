@@ -24,6 +24,21 @@ public class SignUpInput
     public required string Email { get; set; }
 
     /// <summary>
+    /// The unique username for the new user account.
+    /// </summary>
+    /// <value>
+    /// A string between 3 and 30 characters in length.
+    /// Only lowercase letters, numbers, and underscores are allowed.
+    /// </value>
+    [Required]
+    [StringLength(30, MinimumLength = 3)]
+    [RegularExpression(
+        @"^[a-z0-9_]+$",
+        ErrorMessage = "Username can only contain lowercase letters, numbers, and underscores."
+    )]
+    public required string Username { get; set; }
+
+    /// <summary>
     /// The secret password for account authentication.
     /// </summary>
     /// <value>

@@ -54,6 +54,7 @@ public class Mutation
         {
             Id = id,
             Email = input.Email,
+            Username = input.Username,
             HashedPassword = BCrypt.Net.BCrypt.HashPassword(
                 input.Password,
                 BCrypt.Net.BCrypt.GenerateSalt(12)
