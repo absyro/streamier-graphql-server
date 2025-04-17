@@ -22,10 +22,10 @@ public class Mutation
     /// <param name="input">User registration data including email and password.</param>
     /// <returns>The newly created User object.</returns>
     /// <exception cref="ValidationFailedException">Thrown when input validation fails.</exception>
-    /// <exception cref="UserAlreadyExistsException">Thrown when the email is already registered.</exception>
+    /// <exception cref="EmailAlreadyExistsException">Thrown when the email is already registered.</exception>
     /// <exception cref="WeakPasswordException">Thrown when the password doesn't meet strength requirements.</exception>
     [Error(typeof(ValidationFailedException))]
-    [Error(typeof(UserAlreadyExistsException))]
+    [Error(typeof(EmailAlreadyExistsException))]
     [Error(typeof(WeakPasswordException))]
     public async Task<User> SignUp([Service] Contexts.AppDbContext dbContext, SignUpInput input)
     {
@@ -33,7 +33,7 @@ public class Mutation
 
         if (await dbContext.Users.AnyAsync(u => u.Email == input.Email))
         {
-            throw new UserAlreadyExistsException(input.Email);
+            throw new EmailAlreadyExistsException(input.Email);
         }
 
         var result = Core.EvaluatePassword(input.Password);
