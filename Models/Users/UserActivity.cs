@@ -2,6 +2,7 @@ namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using StreamierGraphQLServer.Models.Base;
 
 /// <summary>
 /// Represents an auditable record of user actions and system interactions within the platform.
@@ -11,7 +12,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 /// Activities are used for security auditing, user behavior analysis, and generating activity feeds.
 /// </remarks>
 [Table("user_activities")]
-public class UserActivity : Base.BaseEntity
+public class UserActivity : BaseEntity
 {
     /// <summary>
     /// The classification of this activity record.

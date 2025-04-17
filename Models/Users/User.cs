@@ -1,13 +1,14 @@
 namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
+using StreamierGraphQLServer.Models.Base;
 
 /// <summary>
 /// Represents a user account in the system, containing authentication details,
 /// profile information, preferences, and social connections.
-/// Inherits from <see cref="Base.BaseEntity"/> for common entity properties.
+/// Inherits from <see cref="BaseEntity"/> for common entity properties.
 /// </summary>
-public class User : Base.BaseEntity
+public class User : BaseEntity
 {
     /// <summary>
     /// The user's primary email address. This is used for authentication,

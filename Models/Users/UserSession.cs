@@ -2,6 +2,7 @@ namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using StreamierGraphQLServer.Models.Base;
 
 /// <summary>
 /// Represents an authenticated user session within the application, tracking active login sessions
@@ -12,7 +13,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 /// Multiple concurrent sessions are supported per user account.
 /// </remarks>
 [Table("user_sessions")]
-public class UserSession : Base.BaseEntity
+public class UserSession : BaseEntity
 {
     /// <summary>
     /// The UTC date and time when this session becomes invalid.
