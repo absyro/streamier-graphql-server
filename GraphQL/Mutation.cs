@@ -241,7 +241,7 @@ public class Mutation
         var secretKey = KeyGeneration.GenerateRandomKey(20);
         var base32Secret = Base32Encoding.ToString(secretKey);
 
-        var recoveryCodes = User.GenerateRecoveryCodes();
+        var recoveryCodes = UserTwoFactorAuthentication.GenerateRecoveryCodes();
 
         user.TwoFactorAuthentication = new UserTwoFactorAuthentication
         {
@@ -335,7 +335,7 @@ public class Mutation
             );
         }
 
-        var recoveryCodes = User.GenerateRecoveryCodes();
+        var recoveryCodes = UserTwoFactorAuthentication.GenerateRecoveryCodes();
 
         user.TwoFactorAuthentication.RecoveryCodes = recoveryCodes;
 

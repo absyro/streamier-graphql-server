@@ -1,7 +1,6 @@
 namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
-using RandomString4Net;
 using StreamierGraphQLServer.Models.Base;
 
 /// <summary>
@@ -107,12 +106,4 @@ public class User : BaseEntity
     /// This collection is used to build the user's social graph and feed content.
     /// </remarks>
     public List<string> Following { get; set; } = [];
-
-    public static List<string> GenerateRecoveryCodes()
-    {
-        return Enumerable
-            .Range(0, 10)
-            .Select(_ => RandomString.GetString(Types.ALPHANUMERIC_UPPERCASE, 12))
-            .ToList();
-    }
 }

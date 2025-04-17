@@ -2,6 +2,7 @@ namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using RandomString4Net;
 using StreamierGraphQLServer.Models.Base;
 
 /// <summary>
@@ -28,4 +29,12 @@ public class UserTwoFactorAuthentication : BaseEntity
     [GraphQLIgnore]
     [Required]
     public List<string> RecoveryCodes { get; set; } = [];
+
+    public static List<string> GenerateRecoveryCodes()
+    {
+        return Enumerable
+            .Range(0, 10)
+            .Select(_ => RandomString.GetString(Types.ALPHANUMERIC_UPPERCASE, 12))
+            .ToList();
+    }
 }
