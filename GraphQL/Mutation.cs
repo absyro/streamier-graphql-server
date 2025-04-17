@@ -183,6 +183,17 @@ public class Mutation
                 ErrorBuilder.New().SetMessage("User not found").SetCode("USER_NOT_FOUND").Build()
             );
 
+        if (user.TwoFactorAuthentication != null)
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Two-factor authentication is already enabled.")
+                    .SetCode("TWO_FACTOR_ALREADY_ENABLED")
+                    .Build()
+            );
+        }
+
         var secretKey = KeyGeneration.GenerateRandomKey(20);
         var base32Secret = Base32Encoding.ToString(secretKey);
 
@@ -229,6 +240,17 @@ public class Mutation
                     .New()
                     .SetMessage("Invalid password")
                     .SetCode("INVALID_PASSWORD")
+                    .Build()
+            );
+        }
+
+        if (user.TwoFactorAuthentication == null)
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Two-factor authentication is not enabled.")
+                    .SetCode("TWO_FACTOR_NOT_ENABLED")
                     .Build()
             );
         }
