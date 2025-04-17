@@ -80,47 +80,4 @@ public class Query
     {
         return dbContext.Users.AsNoTracking().AnyAsync(u => u.Username == username);
     }
-
-    /// <summary>
-    /// Checks if an account has two-factor authentication enabled.
-    /// Requires password verification for security.
-    /// </summary>
-    /// <param name="dbContext">The application database context.</param>
-    /// <param name="emailOrUsername">The email or username of the account to check.</param>
-    /// <param name="password">The account password for verification.</param>
-    /// <returns>
-    /// Boolean indicating if 2FA is enabled.
-    /// </returns>
-    /// <exception cref="GraphQLException">Thrown when the user is not found or password is invalid.</exception>
-    public async Task<bool> IsTwoFactorAuthenticationEnabled(
-        [Service] Contexts.AppDbContext dbContext,
-        string emailOrUsername,
-        string password
-    )
-    {
-        var user =
-            await dbContext.Users.FirstOrDefaultAsync(u =>
-                u.Email == emailOrUsername || u.Username == emailOrUsername
-            )
-            ?? throw new GraphQLException(
-                ErrorBuilder
-                    .New()
-                    .SetMessage("Account not found.")
-                    .SetCode("ACCOUNT_NOT_FOUND")
-                    .Build()
-            );
-
-        if (!BCrypt.Net.BCrypt.Verify(password, user.HashedPassword))
-        {
-            throw new GraphQLException(
-                ErrorBuilder
-                    .New()
-                    .SetMessage("Invalid credentials.")
-                    .SetCode("INVALID_CREDENTIALS")
-                    .Build()
-            );
-        }
-
-        return user.TwoFactorAuthentication != null;
-    }
 }
