@@ -1,7 +1,6 @@
 namespace StreamierGraphQLServer.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 using RandomString4Net;
 using StreamierGraphQLServer.Models.Base;
 
@@ -115,22 +114,5 @@ public class User : BaseEntity
             .Range(0, 10)
             .Select(_ => RandomString.GetString(Types.ALPHANUMERIC_UPPERCASE, 12))
             .ToList();
-    }
-
-    public static async Task<UserSession> GenerateSessionAsync(
-        Contexts.AppDbContext dbContext,
-        DateTime expirationDate
-    )
-    {
-        string id;
-
-        do
-        {
-            id = RandomString.GetString(Types.ALPHANUMERIC_MIXEDCASE_WITH_SYMBOLS, 128);
-        } while (await dbContext.Users.AnyAsync(u => u.Sessions.Any(s => s.Id == id)));
-
-        var session = new UserSession { Id = id, ExpiresAt = expirationDate };
-
-        return session;
     }
 }

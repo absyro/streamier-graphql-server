@@ -193,7 +193,14 @@ public class Mutation
             );
         }
 
-        var session = await User.GenerateSessionAsync(dbContext, input.ExpirationDate);
+        string id;
+
+        do
+        {
+            id = RandomString.GetString(Types.ALPHANUMERIC_MIXEDCASE_WITH_SYMBOLS, 128);
+        } while (await dbContext.Users.AnyAsync(u => u.Sessions.Any(s => s.Id == id)));
+
+        var session = new UserSession { Id = id, ExpiresAt = input.ExpirationDate };
 
         user.Sessions.Add(session);
 
