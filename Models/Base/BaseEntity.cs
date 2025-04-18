@@ -18,6 +18,7 @@ public abstract class BaseEntity
     /// A string that represents the primary key of the entity.
     /// This field is required.
     /// </value>
+    [GraphQLType(typeof(IdType))]
     [Key]
     [StringLength(128)]
     public required string Id { get; set; }

@@ -22,15 +22,12 @@ public class UserActivity : BaseEntity
     public required ActivityType Type { get; set; }
 
     /// <summary>
-    /// A human-readable explanation of the activity.
-    /// Typically includes contextual details about the specific action.
+    /// Additional structured data associated with the activity.
+    /// Stored in JSON format to accommodate varying activity-specific information.
     /// </summary>
-    /// <example>
-    /// "User followed account: johndoe@example.com"
-    /// "Password changed via email reset link"
-    /// </example>
-    [Required]
-    public required string Description { get; set; }
+    [GraphQLType(typeof(JsonType))]
+    [Column(TypeName = "jsonb")]
+    public Dictionary<string, object>? Metadata { get; set; }
 
     /// <summary>
     /// Enumerates the types of user activities tracked by the system.
