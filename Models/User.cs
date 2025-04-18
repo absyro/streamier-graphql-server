@@ -17,7 +17,6 @@ public class User : BaseEntity
     /// <remarks>
     /// Maximum length is 320 characters per RFC 5321 standards.
     /// </remarks>
-    [GraphQLType(typeof(EmailAddressType))]
     [Required]
     [EmailAddress]
     [StringLength(320)]
@@ -29,7 +28,6 @@ public class User : BaseEntity
     /// <remarks>
     /// Maximum length is 30 characters.
     /// </remarks>
-    [GraphQLType(typeof(NonEmptyStringType))]
     [Required]
     [StringLength(30, MinimumLength = 3)]
     [RegularExpression(
