@@ -1,6 +1,7 @@
-namespace StreamierGraphQLServer.GraphQL;
+namespace StreamierGraphQLServer.GraphQL.Context;
 
 using Microsoft.AspNetCore.Http;
+using StreamierGraphQLServer.GraphQL.Middleware;
 
 /// <summary>
 /// Provides access to the current GraphQL request context.

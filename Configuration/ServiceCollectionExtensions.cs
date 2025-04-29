@@ -174,7 +174,7 @@ public static class ServiceCollectionExtensions
     /// <returns>The configured <see cref="IServiceCollection"/>.</returns>
     private static IServiceCollection AddGraphQLContext(this IServiceCollection services)
     {
-        services.AddScoped<GraphQLContext>();
+        services.AddScoped<GraphQL.Context.GraphQLContext>();
 
         return services;
     }
@@ -192,8 +192,12 @@ public static class ServiceCollectionExtensions
             .RegisterDbContextFactory<Contexts.AppDbContext>()
             .AddQueryConventions()
             .AddMutationConventions(applyToAllMutations: true)
-            .AddQueryType<GraphQL.Query>()
-            .AddMutationType<GraphQL.Mutation>()
+            .AddQueryType<GraphQL.Queries.Query>()
+            .AddTypeExtension<GraphQL.Queries.UserQueries>()
+            .AddMutationType<GraphQL.Mutations.Mutation>()
+            .AddTypeExtension<GraphQL.Mutations.AuthMutations>()
+            .AddTypeExtension<GraphQL.Mutations.UserMutations>()
+            .AddTypeExtension<GraphQL.Mutations.TwoFactorAuthMutations>()
             .ModifyPagingOptions(options =>
             {
                 options.IncludeTotalCount = true;

@@ -1,4 +1,4 @@
-namespace StreamierGraphQLServer.Inputs;
+namespace StreamierGraphQLServer.Inputs.User;
 
 using System.ComponentModel.DataAnnotations;
 

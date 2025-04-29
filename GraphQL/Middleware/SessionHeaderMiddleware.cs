@@ -1,4 +1,4 @@
-namespace StreamierGraphQLServer.GraphQL;
+namespace StreamierGraphQLServer.GraphQL.Middleware;
 
 using Microsoft.AspNetCore.Http;
 

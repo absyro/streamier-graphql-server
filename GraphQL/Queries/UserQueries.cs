@@ -1,15 +1,18 @@
-namespace StreamierGraphQLServer.GraphQL;
+namespace StreamierGraphQLServer.GraphQL.Queries;
 
 using System.Threading.Tasks;
 using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
+using StreamierGraphQLServer.Contexts;
+using StreamierGraphQLServer.GraphQL.Context;
+using StreamierGraphQLServer.GraphQL.Types;
 using StreamierGraphQLServer.Models;
-using StreamierGraphQLServer.Models.Base;
 
 /// <summary>
-/// GraphQL query class containing all the root query operations.
+/// GraphQL queries related to user operations.
 /// </summary>
-public class Query
+[ExtendObjectType("Query")]
+public class UserQueries
 {
     /// <summary>
     /// Retrieves the current user based on the session ID from the request context.
@@ -20,7 +23,7 @@ public class Query
     [UseProjection]
     [UseFirstOrDefault]
     public IQueryable<User> GetUser(
-        [Service] Contexts.AppDbContext dbContext,
+        [Service] AppDbContext dbContext,
         [Service] GraphQLContext graphQLContext
     )
     {
@@ -48,10 +51,7 @@ public class Query
     /// <returns>An <see cref="IQueryable"/> of <see cref="UserProfile"/> that can be further filtered or projected.</returns>
     [UseProjection]
     [UseFirstOrDefault]
-    public IQueryable<UserProfile> GetUserProfile(
-        [Service] Contexts.AppDbContext dbContext,
-        string userId
-    )
+    public IQueryable<UserProfile> GetUserProfile([Service] AppDbContext dbContext, string userId)
     {
         return dbContext
             .Users.Where(u => u.Id == userId)
@@ -70,7 +70,7 @@ public class Query
     /// <param name="dbContext">The application database context.</param>
     /// <param name="email">The email address to check.</param>
     /// <returns>True if the email is in use, false otherwise.</returns>
-    public Task<bool> IsEmailInUse([Service] Contexts.AppDbContext dbContext, string email)
+    public Task<bool> IsEmailInUse([Service] AppDbContext dbContext, string email)
     {
         return dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email);
     }
@@ -81,19 +81,8 @@ public class Query
     /// <param name="dbContext">The application database context.</param>
     /// <param name="username">The username to check.</param>
     /// <returns>True if the username is in use, false otherwise.</returns>
-    public Task<bool> IsUsernameInUse([Service] Contexts.AppDbContext dbContext, string username)
+    public Task<bool> IsUsernameInUse([Service] AppDbContext dbContext, string username)
     {
         return dbContext.Users.AsNoTracking().AnyAsync(u => u.Username == username);
-    }
-
-    /// <summary>
-    /// Nested class representing a user profile with basic information.
-    /// </summary>
-    public class UserProfile : BaseEntity
-    {
-        /// <summary>
-        /// The biography or description of the user.
-        /// </summary>
-        public required string Bio { get; set; }
     }
 }
