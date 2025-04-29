@@ -5,7 +5,6 @@ using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Resend;
 using StreamierGraphQLServer.Exceptions;
-using StreamierGraphQLServer.GraphQL;
 
 /// <summary>
 /// Provides extension methods for configuring and adding services to the <see cref="IServiceCollection"/>.
