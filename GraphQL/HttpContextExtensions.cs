@@ -10,7 +10,12 @@ public static class HttpContextExtensions
     /// <summary>
     /// The header name used for session authentication.
     /// </summary>
-    public const string SessionHeaderName = "X-Session-Id";
+    public const string AuthorizationHeaderName = "Authorization";
+
+    /// <summary>
+    /// The authentication scheme used for session authentication.
+    /// </summary>
+    public const string SessionAuthScheme = "Session";
 
     /// <summary>
     /// Gets the session ID from the HTTP request headers.
@@ -20,11 +25,16 @@ public static class HttpContextExtensions
     public static string? GetSessionId(this HttpContext context)
     {
         if (
-            context.Request.Headers.TryGetValue(SessionHeaderName, out var sessionId)
-            && !string.IsNullOrEmpty(sessionId)
+            context.Request.Headers.TryGetValue(AuthorizationHeaderName, out var authHeader)
+            && !string.IsNullOrEmpty(authHeader)
         )
         {
-            return sessionId;
+            string authValue = authHeader.ToString();
+
+            if (authValue.StartsWith($"{SessionAuthScheme} ", StringComparison.OrdinalIgnoreCase))
+            {
+                return authValue[(SessionAuthScheme.Length + 1)..].Trim();
+            }
         }
 
         return null;
