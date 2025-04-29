@@ -1,6 +1,7 @@
 namespace StreamierGraphQLServer;
 
 using StreamierGraphQLServer.Configuration;
+using StreamierGraphQLServer.GraphQL;
 
 /// <summary>
 /// The main entry point for the application. Configures and runs the web server.
@@ -31,6 +32,7 @@ public static class Program
 
         app.UseCors();
         app.UseRateLimiter();
+        app.UseMiddleware<SessionHeaderMiddleware>();
 
         app.MapGraphQL();
 

@@ -7,21 +7,9 @@ using System.ComponentModel.DataAnnotations;
 /// </summary>
 /// <remarks>
 /// This input type is used in GraphQL mutations to modify user profile data.
-/// All fields except SessionId are optional to allow partial updates.
 /// </remarks>
 public class UpdateUserInput
 {
-    /// <summary>
-    /// The unique session identifier for the authenticated user.
-    /// </summary>
-    /// <value>
-    /// A non-nullable string representing the current user session.
-    /// This field is required to authorize the update operation.
-    /// </value>
-    [Required]
-    [StringLength(128)]
-    public required string SessionId { get; set; }
-
     /// <summary>
     /// The biographical text for the user's profile.
     /// </summary>

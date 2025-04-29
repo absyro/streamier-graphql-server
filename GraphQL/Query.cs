@@ -12,15 +12,31 @@ using StreamierGraphQLServer.Models.Base;
 public class Query
 {
     /// <summary>
-    /// Retrieves a single user based on their session ID.
+    /// Retrieves the current user based on the session ID from the request context.
     /// </summary>
     /// <param name="dbContext">The application database context.</param>
-    /// <param name="sessionId">The session ID to look up.</param>
+    /// <param name="graphQLContext">The GraphQL context containing the session information.</param>
     /// <returns>An <see cref="IQueryable"/> of <see cref="User"/> that can be further filtered or projected.</returns>
     [UseProjection]
     [UseFirstOrDefault]
-    public IQueryable<User> GetUser([Service] Contexts.AppDbContext dbContext, string sessionId)
+    public IQueryable<User> GetUser(
+        [Service] Contexts.AppDbContext dbContext,
+        [Service] GraphQLContext graphQLContext
+    )
     {
+        var sessionId = graphQLContext.GetSessionId();
+
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Session ID is required")
+                    .SetCode("SESSION_REQUIRED")
+                    .Build()
+            );
+        }
+
         return dbContext.Users.Where(u => u.Sessions.Any(s => s.Id == sessionId));
     }
 

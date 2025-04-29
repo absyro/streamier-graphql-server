@@ -210,19 +210,72 @@ public class Mutation
     }
 
     /// <summary>
-    /// Enables two-factor authentication for a user account.
+    /// Updates a user's profile information.
     /// </summary>
-    public async Task<EnableTwoFactorAuthenticationResult> EnableTwoFactorAuthentication(
+    /// <param name="dbContext">The application database context.</param>
+    /// <param name="graphQLContext">The GraphQL context containing the session information.</param>
+    /// <param name="input">The input data for updating the user profile.</param>
+    /// <returns>The updated user.</returns>
+    public async Task<User> UpdateUser(
         [Service] Contexts.AppDbContext dbContext,
-        EnableTwoFactorAuthenticationInput input
+        [Service] GraphQLContext graphQLContext,
+        UpdateUserInput input
     )
     {
         ValidateInput(input);
 
+        var sessionId = graphQLContext.GetSessionId();
+
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Session ID is required in request header")
+                    .SetCode("SESSION_REQUIRED")
+                    .Build()
+            );
+        }
+
         var user =
-            await dbContext.Users.FirstOrDefaultAsync(u =>
-                u.Sessions.Any(s => s.Id == input.SessionId)
-            )
+            await dbContext.Users.FirstOrDefaultAsync(u => u.Sessions.Any(s => s.Id == sessionId))
+            ?? throw new GraphQLException(
+                ErrorBuilder.New().SetMessage("User not found").SetCode("USER_NOT_FOUND").Build()
+            );
+
+        if (input.Bio != null)
+        {
+            user.Bio = input.Bio;
+        }
+
+        await dbContext.SaveChangesAsync();
+
+        return user;
+    }
+
+    /// <summary>
+    /// Enables two-factor authentication for a user account.
+    /// </summary>
+    public async Task<EnableTwoFactorAuthenticationResult> EnableTwoFactorAuthentication(
+        [Service] Contexts.AppDbContext dbContext,
+        [Service] GraphQLContext graphQLContext
+    )
+    {
+        var sessionId = graphQLContext.GetSessionId();
+
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Session ID is required in request header")
+                    .SetCode("SESSION_REQUIRED")
+                    .Build()
+            );
+        }
+
+        var user =
+            await dbContext.Users.FirstOrDefaultAsync(u => u.Sessions.Any(s => s.Id == sessionId))
             ?? throw new GraphQLException(
                 ErrorBuilder.New().SetMessage("User not found").SetCode("USER_NOT_FOUND").Build()
             );
@@ -264,15 +317,27 @@ public class Mutation
     /// </summary>
     public async Task<bool> DisableTwoFactorAuthentication(
         [Service] Contexts.AppDbContext dbContext,
+        [Service] GraphQLContext graphQLContext,
         DisableTwoFactorAuthenticationInput input
     )
     {
         ValidateInput(input);
 
+        var sessionId = graphQLContext.GetSessionId();
+
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Session ID is required in request header")
+                    .SetCode("SESSION_REQUIRED")
+                    .Build()
+            );
+        }
+
         var user =
-            await dbContext.Users.FirstOrDefaultAsync(u =>
-                u.Sessions.Any(s => s.Id == input.SessionId)
-            )
+            await dbContext.Users.FirstOrDefaultAsync(u => u.Sessions.Any(s => s.Id == sessionId))
             ?? throw new GraphQLException(
                 ErrorBuilder.New().SetMessage("User not found").SetCode("USER_NOT_FOUND").Build()
             );
@@ -311,15 +376,24 @@ public class Mutation
     /// </summary>
     public async Task<List<string>> GenerateNewRecoveryCodes(
         [Service] Contexts.AppDbContext dbContext,
-        GenerateNewRecoveryCodesInput input
+        [Service] GraphQLContext graphQLContext
     )
     {
-        ValidateInput(input);
+        var sessionId = graphQLContext.GetSessionId();
+
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Session ID is required in request header")
+                    .SetCode("SESSION_REQUIRED")
+                    .Build()
+            );
+        }
 
         var user =
-            await dbContext.Users.FirstOrDefaultAsync(u =>
-                u.Sessions.Any(s => s.Id == input.SessionId)
-            )
+            await dbContext.Users.FirstOrDefaultAsync(u => u.Sessions.Any(s => s.Id == sessionId))
             ?? throw new GraphQLException(
                 ErrorBuilder.New().SetMessage("User not found").SetCode("USER_NOT_FOUND").Build()
             );
@@ -358,6 +432,53 @@ public class Mutation
         /// The recovery codes for two-factor authentication.
         /// </summary>
         public List<string> RecoveryCodes { get; set; } = null!;
+    }
+
+    /// <summary>
+    /// Terminates and invalidates an active user session.
+    /// </summary>
+    /// <param name="dbContext">The application database context.</param>
+    /// <param name="graphQLContext">The GraphQL context containing the session information.</param>
+    /// <returns>True if the session was successfully deleted, otherwise false.</returns>
+    public async Task<bool> DeleteSession(
+        [Service] Contexts.AppDbContext dbContext,
+        [Service] GraphQLContext graphQLContext
+    )
+    {
+        var sessionId = graphQLContext.GetSessionId();
+
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            throw new GraphQLException(
+                ErrorBuilder
+                    .New()
+                    .SetMessage("Session ID is required in request header")
+                    .SetCode("SESSION_REQUIRED")
+                    .Build()
+            );
+        }
+
+        var user = await dbContext
+            .Users.Include(u => u.Sessions)
+            .FirstOrDefaultAsync(u => u.Sessions.Any(s => s.Id == sessionId));
+
+        if (user == null)
+        {
+            return false;
+        }
+
+        var sessionToRemove = user.Sessions.FirstOrDefault(s => s.Id == sessionId);
+
+        if (sessionToRemove == null)
+        {
+            return false;
+        }
+
+        user.Sessions.Remove(sessionToRemove);
+
+        await dbContext.SaveChangesAsync();
+
+        return true;
     }
 
     private static void ValidateInput(object input)

@@ -5,6 +5,7 @@ using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Resend;
 using StreamierGraphQLServer.Exceptions;
+using StreamierGraphQLServer.GraphQL;
 
 /// <summary>
 /// Provides extension methods for configuring and adding services to the <see cref="IServiceCollection"/>.
@@ -34,6 +35,8 @@ public static class ServiceCollectionExtensions
         services.AddRateLimiting();
         services.AddCorsPolicy();
         services.AddDatabaseContext(configuration);
+        services.AddHttpContextAccessor();
+        services.AddGraphQLContext();
         services.AddGraphQlServer();
 
         return services;
@@ -160,6 +163,18 @@ public static class ServiceCollectionExtensions
         {
             options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention();
         });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the GraphQL context used for session management.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <returns>The configured <see cref="IServiceCollection"/>.</returns>
+    private static IServiceCollection AddGraphQLContext(this IServiceCollection services)
+    {
+        services.AddScoped<GraphQLContext>();
 
         return services;
     }
