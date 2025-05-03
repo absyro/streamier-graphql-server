@@ -6,6 +6,7 @@ using OtpNet;
 using RandomString4Net;
 using StreamierGraphQLServer.Contexts;
 using StreamierGraphQLServer.GraphQL.Context;
+using StreamierGraphQLServer.GraphQL.Utils;
 using StreamierGraphQLServer.Inputs.Auth;
 using StreamierGraphQLServer.Models;
 
@@ -217,23 +218,5 @@ public class TwoFactorAuthMutations
         }
 
         return recoveryCodes;
-    }
-
-    private static void ValidateInput(object input)
-    {
-        var validationContext = new ValidationContext(input);
-        var validationResults = new List<ValidationResult>();
-
-        if (!Validator.TryValidateObject(input, validationContext, validationResults, true))
-        {
-            throw new GraphQLException(
-                ErrorBuilder
-                    .New()
-                    .SetMessage("Input validation failed")
-                    .SetCode("VALIDATION_ERROR")
-                    .SetExtension("validationErrors", validationResults)
-                    .Build()
-            );
-        }
     }
 }

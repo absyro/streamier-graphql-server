@@ -6,6 +6,7 @@ using OtpNet;
 using RandomString4Net;
 using StreamierGraphQLServer.Contexts;
 using StreamierGraphQLServer.GraphQL.Context;
+using StreamierGraphQLServer.GraphQL.Utils;
 using StreamierGraphQLServer.Inputs.Auth;
 using StreamierGraphQLServer.Models;
 using Zxcvbn;
@@ -21,7 +22,7 @@ public class AuthMutations
     /// </summary>
     public async Task<User> SignUp([Service] AppDbContext dbContext, SignUpInput input)
     {
-        ValidateInput(input);
+        ValidationUtils.ValidateInput(input);
 
         if (await dbContext.Users.AnyAsync(u => u.Email == input.Email))
         {
@@ -93,7 +94,7 @@ public class AuthMutations
     /// </summary>
     public async Task<UserSession> SignIn([Service] AppDbContext dbContext, SignInInput input)
     {
-        ValidateInput(input);
+        ValidationUtils.ValidateInput(input);
 
         var now = DateTime.UtcNow;
 
@@ -249,23 +250,5 @@ public class AuthMutations
         await dbContext.SaveChangesAsync();
 
         return true;
-    }
-
-    private static void ValidateInput(object input)
-    {
-        var validationContext = new ValidationContext(input);
-        var validationResults = new List<ValidationResult>();
-
-        if (!Validator.TryValidateObject(input, validationContext, validationResults, true))
-        {
-            throw new GraphQLException(
-                ErrorBuilder
-                    .New()
-                    .SetMessage("Input validation failed")
-                    .SetCode("VALIDATION_ERROR")
-                    .SetExtension("validationErrors", validationResults)
-                    .Build()
-            );
-        }
     }
 }
