@@ -1,10 +1,8 @@
 namespace StreamierGraphQLServer.GraphQL.Mutations;
 
-using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using StreamierGraphQLServer.Contexts;
 using StreamierGraphQLServer.GraphQL.Context;
-using StreamierGraphQLServer.GraphQL.Utils;
 using StreamierGraphQLServer.Inputs.User;
 using StreamierGraphQLServer.Models;
 

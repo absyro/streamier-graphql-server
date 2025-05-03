@@ -1,6 +1,5 @@
 namespace StreamierGraphQLServer.GraphQL.Mutations;
 
-using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using OtpNet;
 using RandomString4Net;
