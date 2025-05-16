@@ -17,11 +17,13 @@ public class UserStreams : BaseEntity
     /// The ID of the handler that the stream belongs to
     /// </summary>
     [Required]
+    [StringLength(8)]
     public required string HandlerId { get; set; }
 
     /// <summary>
     /// The unique identifier for the stream
     /// </summary>
     [Required]
+    [StringLength(8)]
     public required string StreamId { get; set; }
 }
