@@ -106,4 +106,12 @@ public class User : BaseEntity
     /// This collection is used to build the user's social graph and feed content.
     /// </remarks>
     public List<User> Following { get; set; } = [];
+
+    /// <summary>
+    /// The collection of streams created by this user across different handlers.
+    /// </summary>
+    /// <remarks>
+    /// This collection tracks all streams associated with the user's account.
+    /// </remarks>
+    public List<UserStreams> Streams { get; set; } = [];
 }
