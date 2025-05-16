@@ -2,22 +2,10 @@
 
 A modern GraphQL server built with .NET 9.0, HotChocolate, and Entity Framework Core, providing a robust API for the Streamier platform.
 
-## Features
-
-- GraphQL API with HotChocolate
-- Entity Framework Core with PostgreSQL
-- Secure authentication and authorization
-- Rate limiting and CORS protection
-- Session management
-- Password strength validation
-- OTP (One-Time Password) support
-- Email functionality via Resend
-
 ## Prerequisites
 
 - .NET 9.0 SDK
 - PostgreSQL database
-- Node.js (for development tools)
 
 ## Getting Started
 
