@@ -7,9 +7,6 @@ using StreamierGraphQLServer.Models.Base;
 /// <summary>
 /// Represents a user's streams
 /// </summary>
-/// <remarks>
-/// This table is used to remember created streams by users in each handler.
-/// </remarks>
 [Table("user_streams")]
 public class UserStreams : BaseEntity
 {

@@ -8,9 +8,6 @@ using StreamierGraphQLServer.Models.Base;
 /// Represents an auditable record of user actions and system interactions within the platform.
 /// This entity is persisted to the 'user_activities' table for historical tracking and analytics.
 /// </summary>
-/// <remarks>
-/// Activities are used for security auditing, user behavior analysis, and generating activity feeds.
-/// </remarks>
 [Table("user_activities")]
 public class UserActivity : BaseEntity
 {

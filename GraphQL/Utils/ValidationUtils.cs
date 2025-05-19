@@ -11,8 +11,6 @@ public static class ValidationUtils
     /// <summary>
     /// Validates an input object using data annotations.
     /// </summary>
-    /// <param name="input">The input object to validate.</param>
-    /// <exception cref="GraphQLException">Thrown when validation fails.</exception>
     public static void ValidateInput(object input)
     {
         var validationContext = new ValidationContext(input);

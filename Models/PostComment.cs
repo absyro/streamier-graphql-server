@@ -17,9 +17,6 @@ public class PostComment : BaseEntity
     /// <summary>
     /// The content of the comment.
     /// </summary>
-    /// <remarks>
-    /// This field has a maximum length of 1000 characters.
-    /// </remarks>
     [Required]
     [StringLength(1000)]
     public required string Content { get; set; }

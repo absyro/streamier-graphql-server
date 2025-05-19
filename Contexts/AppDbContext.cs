@@ -8,7 +8,6 @@ using StreamierGraphQLServer.Models.Base;
 /// The primary database context for the application, managing interactions with the database.
 /// Handles entity tracking, change detection, and automatic timestamp updates for entities.
 /// </summary>
-/// <param name="options">The configuration options for this context, including connection string and provider settings.</param>
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     /// <summary>
@@ -21,10 +20,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     /// Saves all changes made in this context to the database asynchronously.
     /// Automatically updates timestamps for modified entities before saving.
     /// </summary>
-    /// <param name="acceptAllChangesOnSuccess">Indicates whether AcceptAllChanges should be called
-    /// after the changes were successfully sent to the database.</param>
-    /// <param name="cancellationToken">A token to observe while waiting for the task to complete.</param>
-    /// <returns>The number of state entries written to the database.</returns>
     public override async Task<int> SaveChangesAsync(
         bool acceptAllChangesOnSuccess,
         CancellationToken cancellationToken = default
@@ -39,7 +34,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     /// Saves all changes made in this context to the database synchronously.
     /// Automatically updates timestamps for modified entities before saving.
     /// </summary>
-    /// <returns>The number of state entries written to the database.</returns>
     public override int SaveChanges()
     {
         UpdateTimestamps();
@@ -51,9 +45,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     /// Saves all changes made in this context to the database synchronously.
     /// Automatically updates timestamps for modified entities before saving.
     /// </summary>
-    /// <param name="acceptAllChangesOnSuccess">Indicates whether AcceptAllChanges should be called
-    /// after the changes were successfully sent to the database.</param>
-    /// <returns>The number of state entries written to the database.</returns>
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         UpdateTimestamps();
@@ -65,8 +56,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     /// Saves all changes made in this context to the database asynchronously.
     /// Automatically updates timestamps for modified entities before saving.
     /// </summary>
-    /// <param name="cancellationToken">A token to observe while waiting for the task to complete.</param>
-    /// <returns>The number of state entries written to the database.</returns>
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         UpdateTimestamps();

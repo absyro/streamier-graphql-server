@@ -7,10 +7,6 @@ using StreamierGraphQLServer.Models.Base;
 /// Configures a user's notification preferences and communication settings.
 /// Controls how and when the user receives system notifications and alerts.
 /// </summary>
-/// <remarks>
-/// Default values are set to provide a balanced notification experience for new users.
-/// All preferences can be adjusted through the user settings interface.
-/// </remarks>
 public class UserPreferences : BaseEntity
 {
     /// <summary>

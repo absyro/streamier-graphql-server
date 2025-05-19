@@ -7,10 +7,6 @@ using StreamierGraphQLServer.Models.Base;
 /// Controls the visibility of user data and interactions across the platform.
 /// Provides granular privacy controls for different aspects of the user profile.
 /// </summary>
-/// <remarks>
-/// Default values are set to public visibility to maximize discoverability,
-/// while allowing users to restrict access as needed.
-/// </remarks>
 public class UserPrivacySettings : BaseEntity
 {
     /// <summary>

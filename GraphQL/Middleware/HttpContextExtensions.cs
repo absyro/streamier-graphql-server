@@ -15,8 +15,6 @@ public static class HttpContextExtensions
     /// <summary>
     /// Gets the session ID from the HTTP request headers.
     /// </summary>
-    /// <param name="context">The HTTP context.</param>
-    /// <returns>The session ID if present in the headers, otherwise null.</returns>
     public static string? GetSessionId(this HttpContext context)
     {
         if (

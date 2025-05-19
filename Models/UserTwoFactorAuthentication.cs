@@ -14,9 +14,6 @@ public class UserTwoFactorAuthentication : BaseEntity
     /// <summary>
     /// The secret key used for generating two-factor authentication codes.
     /// </summary>
-    /// <remarks>
-    /// This field should be encrypted at rest for additional security.
-    /// </remarks>
     [GraphQLIgnore]
     [Required]
     [StringLength(128)]
@@ -33,7 +30,6 @@ public class UserTwoFactorAuthentication : BaseEntity
     /// <summary>
     /// Generates a set of recovery codes for two-factor authentication.
     /// </summary>
-    /// <returns>A list of 10 randomly generated alphanumeric (uppercase) recovery codes, each 12 characters long.</returns>
     public static List<string> GenerateRecoveryCodes()
     {
         return Enumerable

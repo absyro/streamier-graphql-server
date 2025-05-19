@@ -6,7 +6,6 @@ using StreamierGraphQLServer.Models.Base;
 /// <summary>
 /// Represents a user account in the system, containing authentication details,
 /// profile information, preferences, and social connections.
-/// Inherits from <see cref="BaseEntity"/> for common entity properties.
 /// </summary>
 public class User : BaseEntity
 {
@@ -14,9 +13,6 @@ public class User : BaseEntity
     /// The user's primary email address. This is used for authentication,
     /// communication, and account recovery. Must be a valid email format.
     /// </summary>
-    /// <remarks>
-    /// Maximum length is 320 characters per RFC 5321 standards.
-    /// </remarks>
     [Required]
     [EmailAddress]
     [StringLength(320)]
@@ -25,9 +21,6 @@ public class User : BaseEntity
     /// <summary>
     /// The user's unique username for public display.
     /// </summary>
-    /// <remarks>
-    /// Maximum length is 30 characters.
-    /// </remarks>
     [Required]
     [StringLength(30, MinimumLength = 3)]
     [RegularExpression(
@@ -40,9 +33,6 @@ public class User : BaseEntity
     /// The user's biographical information or description.
     /// This is displayed on the user's public profile when visible per privacy settings.
     /// </summary>
-    /// <remarks>
-    /// Maximum length is 500 characters.
-    /// </remarks>
     [StringLength(500)]
     public string Bio { get; set; } = "Hi! I'm using Streamier.";
 
@@ -58,9 +48,6 @@ public class User : BaseEntity
     /// The bcrypt-hashed password for the user account.
     /// This field is excluded from GraphQL responses for security.
     /// </summary>
-    /// <remarks>
-    /// The plain-text password should never be stored. Maximum hash length is 256 characters.
-    /// </remarks>
     [GraphQLIgnore]
     [Required]
     [StringLength(256)]
@@ -102,16 +89,10 @@ public class User : BaseEntity
     /// The list of users that this user is following,
     /// representing one-directional social connections.
     /// </summary>
-    /// <remarks>
-    /// This collection is used to build the user's social graph and feed content.
-    /// </remarks>
     public List<User> Following { get; set; } = [];
 
     /// <summary>
     /// The collection of streams created by this user across different handlers.
     /// </summary>
-    /// <remarks>
-    /// This collection tracks all streams associated with the user's account.
-    /// </remarks>
     public List<UserStreams> Streams { get; set; } = [];
 }

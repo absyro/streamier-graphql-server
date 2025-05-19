@@ -10,8 +10,6 @@ public class SessionHeaderMiddleware(RequestDelegate next)
     /// <summary>
     /// Processes the HTTP request to extract session information from headers.
     /// </summary>
-    /// <param name="context">The HTTP context for the current request.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
         var sessionId = context.GetSessionId();

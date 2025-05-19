@@ -8,10 +8,6 @@ using StreamierGraphQLServer.Models.Base;
 /// Represents an authenticated user session within the application, tracking active login sessions
 /// for security, analytics, and session management purposes.
 /// </summary>
-/// <remarks>
-/// Sessions are automatically invalidated when they expire or when the user logs out.
-/// Multiple concurrent sessions are supported per user account.
-/// </remarks>
 [Table("user_sessions")]
 public class UserSession : BaseEntity
 {

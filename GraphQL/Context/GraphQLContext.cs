@@ -11,7 +11,6 @@ public class GraphQLContext(IHttpContextAccessor httpContextAccessor)
     /// <summary>
     /// Gets the session ID from the current HTTP context.
     /// </summary>
-    /// <returns>The session ID if available, otherwise null.</returns>
     public string? GetSessionId()
     {
         var httpContext = httpContextAccessor.HttpContext;
