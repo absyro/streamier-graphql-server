@@ -90,9 +90,4 @@ public class User : BaseEntity
     /// representing one-directional social connections.
     /// </summary>
     public List<User> Following { get; set; } = [];
-
-    /// <summary>
-    /// The collection of streams created by this user across different handlers.
-    /// </summary>
-    public List<UserStreams> Streams { get; set; } = [];
 }
