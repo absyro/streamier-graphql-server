@@ -19,17 +19,6 @@ public class User : BaseEntity
     public required string Email { get; set; }
 
     /// <summary>
-    /// The user's unique username for public display.
-    /// </summary>
-    [Required]
-    [StringLength(30, MinimumLength = 3)]
-    [RegularExpression(
-        @"^[a-z0-9_]+$",
-        ErrorMessage = "Username can only contain lowercase letters, numbers, and underscores."
-    )]
-    public required string Username { get; set; }
-
-    /// <summary>
     /// The user's biographical information or description.
     /// This is displayed on the user's public profile when visible per privacy settings.
     /// </summary>

@@ -35,18 +35,6 @@ public class AuthMutations
             );
         }
 
-        if (await dbContext.Users.AnyAsync(u => u.Username == input.Username))
-        {
-            throw new GraphQLException(
-                ErrorBuilder
-                    .New()
-                    .SetMessage("Username already taken")
-                    .SetCode("USERNAME_TAKEN")
-                    .SetExtension("username", input.Username)
-                    .Build()
-            );
-        }
-
         var result = Core.EvaluatePassword(input.Password);
 
         if (result.Score < 3)
@@ -72,7 +60,6 @@ public class AuthMutations
         {
             Id = id,
             Email = input.Email,
-            Username = input.Username,
             HashedPassword = BCrypt.Net.BCrypt.HashPassword(
                 input.Password,
                 BCrypt.Net.BCrypt.GenerateSalt(12)

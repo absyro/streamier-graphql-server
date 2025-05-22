@@ -26,7 +26,7 @@ public class UserPreferences : BaseEntity
     public bool PushOnNewFollowers { get; set; } = true;
 
     /// <summary>
-    /// Whether to receive push notifications when mentioned (@username) in content.
+    /// Whether to receive push notifications when mentioned in content.
     /// Only active when <see cref="PushNotifications"/> is true.
     /// Default: true (enabled)
     /// </summary>

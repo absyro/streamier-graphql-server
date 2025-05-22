@@ -65,12 +65,4 @@ public class UserQueries
     {
         return dbContext.Users.AsNoTracking().AnyAsync(u => u.Email == email);
     }
-
-    /// <summary>
-    /// Checks if a username is already in use by any user.
-    /// </summary>
-    public Task<bool> IsUsernameInUse([Service] AppDbContext dbContext, string username)
-    {
-        return dbContext.Users.AsNoTracking().AnyAsync(u => u.Username == username);
-    }
 }
